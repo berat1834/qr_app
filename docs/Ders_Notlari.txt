@@ -1,0 +1,233 @@
+==================================================================
+                  FLUTTER QR KOD PROJESİ DERS NOTLARI
+==================================================================
+
+Tarih: 6 Ekim 2025
+Proje: QR Kod Uygulaması  
+Teknoloji: Flutter & Dart
+
+------------------------------------------------------------------
+                            İÇİNDEKİLER
+------------------------------------------------------------------
+
+1. Proje Yapısı
+2. Ana Dosyalar (main.dart, home_screen.dart)
+3. QR Scanner (Kamera ile okuma)
+4. QR Generator (QR kod oluşturma)
+5. History Screen (Geçmiş yönetimi)
+6. Önemli Flutter Kavramları
+7. İleri Adımlar
+
+==================================================================
+                         1. PROJE YAPISI
+==================================================================
+
+lib/
+├── main.dart              # Ana dosya - uygulamanın başlangıcı
+└── screens/               # Ekranlar klasörü
+    ├── home_screen.dart          # Ana sayfa
+    ├── qr_scanner_screen.dart    # QR okuma ekranı
+    ├── qr_generator_screen.dart  # QR oluşturma ekranı
+    └── history_screen.dart       # Geçmiş ekranı
+
+KULLANILAN PAKETLER:
+- flutter/material.dart (UI bileşenleri)
+- mobile_scanner (QR kod tarama)
+- qr_flutter (QR kod görselleştirme)
+- permission_handler (İzin yönetimi)
+
+==================================================================
+                        2. ANA DOSYALAR
+==================================================================
+
+--- main.dart ---
+• Uygulamanın başlangıç noktası
+• MaterialApp konfigürasyonu
+• Tema ayarları
+• İlk sayfa (HomeScreen) tanımı
+
+TEMEL KAVRAMLAR:
+- void main() -> Uygulamanın giriş noktası
+- runApp() -> Flutter uygulamasını başlatır
+- StatelessWidget -> Değişmeyen UI bileşeni
+- MaterialApp -> Uygulamanın kök widget'ı
+
+--- home_screen.dart ---
+• Ana menü sayfası
+• Üç buton: QR Tara, QR Oluştur, Geçmiş
+• Navigasyon (sayfa geçişi) sistemi
+• Özel buton widget'ı
+
+TEMEL KAVRAMLAR:
+- Scaffold -> Sayfa iskelet yapısı
+- Column/Row -> Dikey/yatay sıralama
+- Container -> Kutular oluşturma
+- Navigator.push() -> Yeni sayfa açma
+- Card & InkWell -> Tıklanabilir kartlar
+
+==================================================================
+                     3. QR SCANNER (KAMERA)
+==================================================================
+
+ÖZELLİKLER:
+• Gerçek zamanlı kamera görüntüsü
+• QR kod otomatik algılama
+• Flaş açma/kapama
+• Sonuç gösterme ve kaydetme
+• İzin yönetimi
+
+TEMEL KAVRAMLAR:
+- StatefulWidget -> Değişebilen durum
+- async/await -> Asenkron programlama
+- setState() -> UI güncelleme
+- MobileScanner -> QR okuma widget'ı
+- Permission.camera -> Kamera izni
+
+KOD ÖRNEĞİ:
+```
+MobileScanner(
+  onDetect: (capture) {
+    setState(() {
+      result = barcode.rawValue;
+    });
+  },
+)
+```
+
+==================================================================
+                    4. QR GENERATOR (OLUŞTURMA)
+==================================================================
+
+ÖZELLİKLER:
+• 4 farklı QR türü: Metin, URL, WiFi, Telefon
+• Dropdown menü ile tür seçimi
+• Dinamik giriş formları
+• QR kod önizleme
+• Panoya kopyalama
+
+TEMEL KAVRAMLAR:
+- TextEditingController -> Metin girişi kontrolü
+- switch-case -> Çoklu koşul kontrolü
+- DropdownButton -> Açılır menü
+- QrImageView -> QR kod görseli
+- Clipboard -> Sistem panosu
+
+WiFi QR FORMAT:
+WIFI:T:WPA;S:WiFiAdi;P:Sifre;;
+
+==================================================================
+                    5. HISTORY SCREEN (GEÇMİŞ)
+==================================================================
+
+ÖZELLİKLER:
+• Tüm QR aktivitelerini listeleme
+• Tarama/oluşturma durumu gösterme
+• Zaman damgası (1 saat önce, 2 gün önce)
+• Silme konfirmasyonu
+• PopupMenu (sağ tık menüsü)
+
+TEMEL KAVRAMLAR:
+- ListView.builder -> Performanslı liste
+- DateTime -> Zaman işlemleri
+- RegExp -> Düzenli ifadeler
+- showDialog -> Modal dialog
+- PopupMenuButton -> Sağ tık menüsü
+
+ZAMAN HESAPLAMA:
+```
+final difference = DateTime.now().difference(pastTime);
+if (difference.inDays > 0) return '${difference.inDays} gün önce';
+```
+
+==================================================================
+                   6. ÖNEMLİ FLUTTER KAVRAMLARI
+==================================================================
+
+--- WIDGET TREE ---
+MaterialApp
+├── Scaffold
+    ├── AppBar
+    └── Body
+        └── Column
+            ├── Container
+            └── ListView
+
+--- STATE MANAGEMENT ---
+StatelessWidget: Değişmeyen widget'lar
+StatefulWidget: Değişebilen widget'lar
+setState(): UI güncelleme fonksiyonu
+
+--- LAYOUT ---
+Column: Dikey sıralama
+Row: Yatay sıralama
+Expanded: Esnek alan doldurma
+Padding: İç boşluk
+Container: Çok amaçlı kutu
+
+--- NAVIGATION ---
+Navigator.push(): Yeni sayfa aç
+Navigator.pop(): Önceki sayfaya dön
+MaterialPageRoute: Sayfa geçiş animasyonu
+
+--- ASYNC PROGRAMMING ---
+Future<T>: Gelecekte tamamlanacak işlem
+async/await: Asenkron programlama
+try/catch: Hata yakalama
+
+--- USER FEEDBACK ---
+SnackBar: Alt bildirim
+AlertDialog: Popup dialog
+showDialog(): Dialog gösterme
+
+==================================================================
+                        7. İLERİ ADIMLAR
+==================================================================
+
+ÖĞRENECEK KONULAR:
+✓ State Management (Provider, Riverpod, Bloc)
+✓ Veritabanı (SQLite, Hive, Firebase)
+✓ Network İşlemleri (HTTP, REST API)
+✓ Animasyonlar (Hero, Lottie)
+✓ Test Yazma (Unit, Widget, Integration)
+✓ Platform Özellikleri (Native kod)
+✓ App Store Yayımlama
+
+PROJE GELİŞTİRME FİKİRLERİ:
+• QR kodları veritabanında saklama
+• QR kod paylaşma özelliği
+• Toplu QR kod oluşturma
+• QR kod istatistikleri
+• Dark/Light tema
+• Çoklu dil desteği
+
+==================================================================
+                           SONUÇ
+==================================================================
+
+Bu proje ile öğrendikleriniz:
+• Flutter temel yapısı ve widget sistemi
+• State management ve lifecycle
+• Kamera entegrasyonu ve izin yönetimi
+• QR kod teknolojileri
+• UI/UX tasarım prensipleri
+• Asenkron programlama
+• Veri modelleme
+• Navigation sistemi
+
+Bu temel bilgiler ile Flutter'da daha karmaşık uygulamalar 
+geliştirebilir, backend entegrasyonu yapabilir ve App Store'a 
+uygulama yayımlayabilirsiniz.
+
+==================================================================
+
+Hazırlayan: GitHub Copilot
+Tarih: 6 Ekim 2025
+Proje: Flutter QR Kod Uygulaması
+
+Bu dökümanları docs klasöründe bulabilirsiniz:
+- Flutter_QR_Kod_Dersleri.md (Detaylı ders notları)
+- Kod_Ornekleri.md (Tüm kod örnekleri)
+- Flutter_Kavramlari.md (Hızlı referans)
+- Ders_Notlari.txt (Bu dosya)
+
+==================================================================

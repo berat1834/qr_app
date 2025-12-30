@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Kod Test Sayfası</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .qr-container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .qr-code {
+            margin: 20px 0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .data-text {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 QR Kod Test Merkezi</h1>
+    <p style="text-align: center; color: #666;">Flutter QR uygulamanızı test etmek için aşağıdaki QR kodlarını kullanın</p>
+
+    <!-- URL Test -->
+    <div class="qr-container">
+        <h3>🌐 Website URL Testi</h3>
+        <div class="data-text">https://flutter.dev</div>
+        <canvas id="qr-url" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-url', 'https://flutter.dev')">QR Oluştur</button>
+    </div>
+
+    <!-- WiFi Test -->
+    <div class="qr-container">
+        <h3>📶 WiFi Bağlantı Testi</h3>
+        <div class="data-text">WIFI:T:WPA;S:TestNetwork;P:12345678;;</div>
+        <canvas id="qr-wifi" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-wifi', 'WIFI:T:WPA;S:TestNetwork;P:12345678;;')">QR Oluştur</button>
+    </div>
+
+    <!-- Contact Test -->
+    <div class="qr-container">
+        <h3>👤 Kişi Bilgisi Testi</h3>
+        <div class="data-text">BEGIN:VCARD
+VERSION:3.0
+FN:Ahmet Yılmaz
+ORG:Test Şirketi
+TEL:+905551234567
+EMAIL:ahmet@test.com
+END:VCARD</div>
+        <canvas id="qr-contact" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-contact', 'BEGIN:VCARD\\nVERSION:3.0\\nFN:Ahmet Yılmaz\\nORG:Test Şirketi\\nTEL:+905551234567\\nEMAIL:ahmet@test.com\\nEND:VCARD')">QR Oluştur</button>
+    </div>
+
+    <!-- SMS Test -->
+    <div class="qr-container">
+        <h3>💬 SMS Testi</h3>
+        <div class="data-text">smsto:+905551234567:Merhaba, bu bir test mesajıdır!</div>
+        <canvas id="qr-sms" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-sms', 'smsto:+905551234567:Merhaba, bu bir test mesajıdır!')">QR Oluştur</button>
+    </div>
+
+    <!-- Email Test -->
+    <div class="qr-container">
+        <h3>✉️ Email Testi</h3>
+        <div class="data-text">mailto:test@example.com?subject=QR Test&body=Bu bir QR kod testidir</div>
+        <canvas id="qr-email" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-email', 'mailto:test@example.com?subject=QR Test&body=Bu bir QR kod testidir')">QR Oluştur</button>
+    </div>
+
+    <!-- Phone Test -->
+    <div class="qr-container">
+        <h3>📞 Telefon Arama Testi</h3>
+        <div class="data-text">tel:+905551234567</div>
+        <canvas id="qr-phone" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-phone', 'tel:+905551234567')">QR Oluştur</button>
+    </div>
+
+    <!-- Text Test -->
+    <div class="qr-container">
+        <h3>📝 Metin Testi</h3>
+        <div class="data-text">Merhaba! Bu bir QR kod test metnidir. Flutter uygulamanız bu metni başarıyla okuyabildi mi? 🚀</div>
+        <canvas id="qr-text" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-text', 'Merhaba! Bu bir QR kod test metnidir. Flutter uygulamanız bu metni başarıyla okuyabildi mi? 🚀')">QR Oluştur</button>
+    </div>
+
+    <!-- Location Test -->
+    <div class="qr-container">
+        <h3>📍 Konum Testi</h3>
+        <div class="data-text">geo:41.0082,28.9784?q=İstanbul,Turkey</div>
+        <canvas id="qr-location" class="qr-code"></canvas>
+        <button onclick="generateQR('qr-location', 'geo:41.0082,28.9784?q=İstanbul,Turkey')">QR Oluştur</button>
+    </div>
+
+    <!-- Batch Test - Multiple QR Codes for Batch Scanner -->
+    <div class="qr-container">
+        <h3>📋 Toplu Tarama Testi</h3>
+        <p>Aşağıdaki QR kodları toplu tarama özelliği için kullanın:</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+            <div>
+                <div class="data-text" style="font-size: 12px;">Ürün A - SKU001</div>
+                <canvas id="qr-batch1" class="qr-code"></canvas>
+                <button onclick="generateQR('qr-batch1', 'SKU001:Ürün A:100 TL')">Oluştur</button>
+            </div>
+            <div>
+                <div class="data-text" style="font-size: 12px;">Ürün B - SKU002</div>
+                <canvas id="qr-batch2" class="qr-code"></canvas>
+                <button onclick="generateQR('qr-batch2', 'SKU002:Ürün B:250 TL')">Oluştur</button>
+            </div>
+            <div>
+                <div class="data-text" style="font-size: 12px;">Ürün C - SKU003</div>
+                <canvas id="qr-batch3" class="qr-code"></canvas>
+                <button onclick="generateQR('qr-batch3', 'SKU003:Ürün C:75 TL')">Oluştur</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; padding: 20px; background: #e8f5e8; border-radius: 10px;">
+        <h3>🎯 Test Talimatları:</h3>
+        <ol style="text-align: left; display: inline-block;">
+            <li><strong>QR Oluştur</strong> butonlarına tıklayarak QR kodları oluşturun</li>
+            <li>Flutter uygulamanızda <strong>QR Tara</strong> özelliğini açın</li>
+            <li>Emülatör kamerasını bilgisayar ekranındaki QR kodlara doğrultun</li>
+            <li>Farklı QR kod türlerini test edin</li>
+            <li><strong>Toplu Tarama</strong> için birden fazla QR kodu art arda tarayın</li>
+            <li><strong>Favoriler</strong> özelliğini test etmek için beğendiğiniz QR kodları favorilere ekleyin</li>
+        </ol>
+    </div>
+
+    <script>
+        function generateQR(canvasId, text) {
+            const canvas = document.getElementById(canvasId);
+            QRCode.toCanvas(canvas, text, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) console.error(error);
+                console.log('QR kod oluşturuldu: ' + canvasId);
+            });
+        }
+
+        // Sayfa yüklendiğinde tüm QR kodları oluştur
+        window.onload = function() {
+            generateQR('qr-url', 'https://flutter.dev');
+            generateQR('qr-wifi', 'WIFI:T:WPA;S:TestNetwork;P:12345678;;');
+            generateQR('qr-contact', 'BEGIN:VCARD\\nVERSION:3.0\\nFN:Ahmet Yılmaz\\nORG:Test Şirketi\\nTEL:+905551234567\\nEMAIL:ahmet@test.com\\nEND:VCARD');
+            generateQR('qr-sms', 'smsto:+905551234567:Merhaba, bu bir test mesajıdır!');
+            generateQR('qr-email', 'mailto:test@example.com?subject=QR Test&body=Bu bir QR kod testidir');
+            generateQR('qr-phone', 'tel:+905551234567');
+            generateQR('qr-text', 'Merhaba! Bu bir QR kod test metnidir. Flutter uygulamanız bu metni başarıyla okuyabildi mi? 🚀');
+            generateQR('qr-location', 'geo:41.0082,28.9784?q=İstanbul,Turkey');
+            generateQR('qr-batch1', 'SKU001:Ürün A:100 TL');
+            generateQR('qr-batch2', 'SKU002:Ürün B:250 TL');
+            generateQR('qr-batch3', 'SKU003:Ürün C:75 TL');
+        };
+    </script>
+</body>
+</html>

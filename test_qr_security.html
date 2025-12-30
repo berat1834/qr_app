@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Kod Güvenlik Test Sayfası</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .qr-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .qr-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .risk-safe {
+            background: #10b981;
+            color: white;
+        }
+        .risk-medium {
+            background: #f59e0b;
+            color: white;
+        }
+        .risk-high {
+            background: #ef4444;
+            color: white;
+        }
+        h3 {
+            margin: 0 0 10px 0;
+            color: #1f2937;
+            font-size: 18px;
+        }
+        .url {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            color: #374151;
+            margin: 10px 0;
+        }
+        .description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .instructions {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .instructions h2 {
+            color: #1f2937;
+            margin-top: 0;
+        }
+        .instructions ol {
+            color: #374151;
+            line-height: 1.8;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔒 QR Kod Güvenlik Test Sayfası</h1>
+    <p class="subtitle">Uygulamanızın güvenlik özelliklerini test edin</p>
+
+    <div class="instructions">
+        <h2>📱 Test Nasıl Yapılır?</h2>
+        <ol>
+            <li><strong>Android emülatörde</strong> QR kod uygulamanızı açın</li>
+            <li>Bu sayfayı <strong>bilgisayar ekranında</strong> görüntüleyin</li>
+            <li>Uygulamadan <strong>QR Kod Oluştur</strong> sekmesine gidin</li>
+            <li>Her QR kodu için <strong>aynı URL'yi manuel girin</strong></li>
+            <li>Güvenlik uyarılarını kontrol edin (beklenen risk seviyesi ile uyuşmalı)</li>
+            <li>Alternatif: <strong>QR Kod Tara</strong> özelliğini kullanarak bu sayfadaki QR kodları okutun</li>
+        </ol>
+    </div>
+
+    <div class="grid">
+        <!-- SAFE: Google -->
+        <div class="qr-card">
+            <span class="risk-badge risk-safe">✓ GÜVENLİ</span>
+            <h3>1. Güvenli Site (Google)</h3>
+            <div class="qr-container">
+                <canvas id="qr1"></canvas>
+            </div>
+            <div class="url">https://google.com</div>
+            <div class="description">
+                ✅ Beklenen: <strong>Güvenli</strong> (yeşil)<br>
+                Güvenilir domain listesinde
+            </div>
+        </div>
+
+        <!-- HIGH RISK: HTTP -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">⚠ YÜKSEK RİSK</span>
+            <h3>2. HTTP Bağlantısı</h3>
+            <div class="qr-container">
+                <canvas id="qr2"></canvas>
+            </div>
+            <div class="url">http://example.com</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Yüksek Risk</strong><br>
+                HTTPS kullanmıyor, şifrelenmemiş
+            </div>
+        </div>
+
+        <!-- HIGH RISK: URL Shortener -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">⚠ YÜKSEK RİSK</span>
+            <h3>3. URL Kısaltıcı</h3>
+            <div class="qr-container">
+                <canvas id="qr3"></canvas>
+            </div>
+            <div class="url">https://bit.ly/test123</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Yüksek Risk</strong><br>
+                Gerçek hedefi gizleyen kısaltılmış URL
+            </div>
+        </div>
+
+        <!-- HIGH RISK: Localhost -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">🚫 ENGELLENMİŞ</span>
+            <h3>4. Localhost Adresi</h3>
+            <div class="qr-container">
+                <canvas id="qr4"></canvas>
+            </div>
+            <div class="url">http://192.168.1.1</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Engellenmiş</strong><br>
+                Özel ağ adresi, güvenli değil
+            </div>
+        </div>
+
+        <!-- HIGH RISK: Phishing -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">⚠ YÜKSEK RİSK</span>
+            <h3>5. Şüpheli İçerik</h3>
+            <div class="qr-container">
+                <canvas id="qr5"></canvas>
+            </div>
+            <div class="url">https://phishing-test.com</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Yüksek Risk</strong><br>
+                Zararlı desen tespit edildi: "phishing"
+            </div>
+        </div>
+
+        <!-- SAFE: YouTube -->
+        <div class="qr-card">
+            <span class="risk-badge risk-safe">✓ GÜVENLİ</span>
+            <h3>6. Güvenli Site (YouTube)</h3>
+            <div class="qr-container">
+                <canvas id="qr6"></canvas>
+            </div>
+            <div class="url">https://youtube.com/watch?v=dQw4w9WgXcQ</div>
+            <div class="description">
+                ✅ Beklenen: <strong>Güvenli</strong><br>
+                Güvenilir domain (YouTube)
+            </div>
+        </div>
+
+        <!-- MEDIUM RISK: Unknown -->
+        <div class="qr-card">
+            <span class="risk-badge risk-medium">⚡ ORTA RİSK</span>
+            <h3>7. Bilinmeyen Site</h3>
+            <div class="qr-container">
+                <canvas id="qr7"></canvas>
+            </div>
+            <div class="url">https://unknown-site-test.com</div>
+            <div class="description">
+                🟡 Beklenen: <strong>Orta Risk</strong><br>
+                Bilinmeyen site, dikkatli olun
+            </div>
+        </div>
+
+        <!-- HIGH RISK: Suspicious TLD -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">⚠ YÜKSEK RİSK</span>
+            <h3>8. Şüpheli Domain Uzantısı</h3>
+            <div class="qr-container">
+                <canvas id="qr8"></canvas>
+            </div>
+            <div class="url">https://example.tk</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Yüksek Risk</strong><br>
+                Şüpheli domain uzantısı (.tk)
+            </div>
+        </div>
+
+        <!-- SAFE: GitHub -->
+        <div class="qr-card">
+            <span class="risk-badge risk-safe">✓ GÜVENLİ</span>
+            <h3>9. Güvenli Site (GitHub)</h3>
+            <div class="qr-container">
+                <canvas id="qr9"></canvas>
+            </div>
+            <div class="url">https://github.com</div>
+            <div class="description">
+                ✅ Beklenen: <strong>Güvenli</strong><br>
+                Güvenilir domain (GitHub)
+            </div>
+        </div>
+
+        <!-- HIGH RISK: Admin Path -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">⚠ YÜKSEK RİSK</span>
+            <h3>10. Şüpheli Path</h3>
+            <div class="qr-container">
+                <canvas id="qr10"></canvas>
+            </div>
+            <div class="url">https://somesite.com/admin/login.php</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Yüksek Risk</strong><br>
+                Şüpheli path deseni: /admin, /login.php
+            </div>
+        </div>
+
+        <!-- HIGH RISK: Localhost 127.0.0.1 -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">🚫 ENGELLENMİŞ</span>
+            <h3>11. Localhost (127.0.0.1)</h3>
+            <div class="qr-container">
+                <canvas id="qr11"></canvas>
+            </div>
+            <div class="url">http://127.0.0.1:8080</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Engellenmiş</strong><br>
+                Localhost adresi tespit edildi
+            </div>
+        </div>
+
+        <!-- HIGH RISK: Multiple URL Shortener -->
+        <div class="qr-card">
+            <span class="risk-badge risk-high">⚠ YÜKSEK RİSK</span>
+            <h3>12. URL Kısaltıcı (t.co)</h3>
+            <div class="qr-container">
+                <canvas id="qr12"></canvas>
+            </div>
+            <div class="url">https://t.co/abc123def</div>
+            <div class="description">
+                🔴 Beklenen: <strong>Yüksek Risk</strong><br>
+                Twitter URL kısaltıcı tespit edildi
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // QR kod oluşturma fonksiyonu
+        function generateQR(elementId, url) {
+            QRCode.toCanvas(document.getElementById(elementId), url, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) console.error(error);
+            });
+        }
+
+        // Sayfa yüklendiğinde tüm QR kodları oluştur
+        window.addEventListener('load', function() {
+            generateQR('qr1', 'https://google.com');
+            generateQR('qr2', 'http://example.com');
+            generateQR('qr3', 'https://bit.ly/test123');
+            generateQR('qr4', 'http://192.168.1.1');
+            generateQR('qr5', 'https://phishing-test.com');
+            generateQR('qr6', 'https://youtube.com/watch?v=dQw4w9WgXcQ');
+            generateQR('qr7', 'https://unknown-site-test.com');
+            generateQR('qr8', 'https://example.tk');
+            generateQR('qr9', 'https://github.com');
+            generateQR('qr10', 'https://somesite.com/admin/login.php');
+            generateQR('qr11', 'http://127.0.0.1:8080');
+            generateQR('qr12', 'https://t.co/abc123def');
+        });
+    </script>
+</body>
+</html>

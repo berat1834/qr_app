@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Kod İndirici</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .qr-container { margin: 20px; padding: 20px; border: 1px solid #ddd; display: inline-block; }
+        button { padding: 10px 20px; margin: 10px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        canvas { border: 1px solid #ddd; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🎯 QR Kod İndirici</h1>
+    
+    <div class="qr-container">
+        <h3>Test QR Kodu</h3>
+        <p>Metin: "Merhaba Flutter! Bu bilgisayardan okutulan bir QR kod 🚀"</p>
+        <canvas id="qr-canvas"></canvas><br>
+        <button onclick="downloadQR()">QR Kodu İndir (.png)</button>
+    </div>
+
+    <div class="qr-container">
+        <h3>URL QR Kodu</h3>
+        <p>Flutter.dev website</p>
+        <canvas id="qr-url-canvas"></canvas><br>
+        <button onclick="downloadURL()">URL QR İndir (.png)</button>
+    </div>
+
+    <div class="qr-container">
+        <h3>WiFi QR Kodu</h3>
+        <p>Test WiFi: TestNetwork / 12345678</p>
+        <canvas id="qr-wifi-canvas"></canvas><br>
+        <button onclick="downloadWiFi()">WiFi QR İndir (.png)</button>
+    </div>
+
+    <script>
+        // QR kodları oluştur
+        QRCode.toCanvas(document.getElementById('qr-canvas'), 'Merhaba Flutter! Bu bilgisayardan okutulan bir QR kod 🚀', { width: 300 });
+        QRCode.toCanvas(document.getElementById('qr-url-canvas'), 'https://flutter.dev', { width: 300 });
+        QRCode.toCanvas(document.getElementById('qr-wifi-canvas'), 'WIFI:T:WPA;S:TestNetwork;P:12345678;;', { width: 300 });
+
+        function downloadQR() {
+            const canvas = document.getElementById('qr-canvas');
+            downloadCanvas(canvas, 'test-qr-kod.png');
+        }
+
+        function downloadURL() {
+            const canvas = document.getElementById('qr-url-canvas');
+            downloadCanvas(canvas, 'flutter-website-qr.png');
+        }
+
+        function downloadWiFi() {
+            const canvas = document.getElementById('qr-wifi-canvas');
+            downloadCanvas(canvas, 'wifi-qr-kod.png');
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>
