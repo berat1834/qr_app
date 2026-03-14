@@ -8,6 +8,14 @@ class ShareService {
     await Share.share(text, subject: subject);
   }
 
+  static Future<void> shareFile(
+    String filePath, {
+    String? text,
+    String? subject,
+  }) async {
+    await Share.shareXFiles([XFile(filePath)], text: text, subject: subject);
+  }
+
   // WhatsApp'a direkt paylaşım
   static Future<void> shareToWhatsApp(String text) async {
     final String whatsappUrl =

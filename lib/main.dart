@@ -1,10 +1,22 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_app/providers/history_provider.dart';
+import 'package:qr_app/services/premium_access_service.dart';
+import 'package:qr_app/services/premium_sync_service.dart';
+import 'firebase_options.dart';
 import 'providers/enhanced_theme_provider.dart';
 import 'screens/simple_home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Firebase Initialization
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await PremiumAccessService.initialize();
+  PremiumSyncService.runStartupSyncIfEnabled();
+
   runApp(
     MultiProvider(
       providers: [

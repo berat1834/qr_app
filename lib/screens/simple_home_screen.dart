@@ -6,11 +6,13 @@ import '../services/feedback_service.dart';
 import 'enhanced_qr_scanner_screen.dart';
 import 'enhanced_qr_generator_screen.dart';
 import 'history_screen.dart';
+import 'settings_screen.dart';
 import 'theme_settings_screen.dart';
 import 'favorites_screen.dart';
 import 'batch_scanner_screen.dart';
 import 'advanced_barcode_scanner.dart';
 import 'custom_qr_generator_screen.dart';
+import 'analytics_screen.dart';
 
 class SimpleHomeScreen extends StatefulWidget {
   const SimpleHomeScreen({super.key});
@@ -37,18 +39,36 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> {
     });
   }
 
+  Future<void> _addSampleData() async {
+    // Test amaçlı örnek veri ekle
+    await HistoryService.addToHistory(
+      data: 'https://example.com',
+      type: 'URL',
+      isScanned: true,
+    );
+    await HistoryService.addToHistory(
+      data: 'https://example.org',
+      type: 'URL',
+      isScanned: false,
+    );
+
+    await _loadStats();
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'QR Kod Uygulaması',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: themeProvider.primaryColor,
-        foregroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.palette),
@@ -75,257 +95,356 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> {
           ),
         ],
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Header Card
-            Card(
-              elevation: 4,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.qr_code,
-                      size: 64,
-                      color: themeProvider.primaryColor,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'QR Kod Uygulaması',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: themeProvider.primaryColor,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'QR kodlarını tarayın ve oluşturun',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Action Buttons
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.1,
-                children: [
-                  _buildActionCard(
-                    context,
-                    'QR Tara',
-                    Icons.qr_code_scanner,
-                    Colors.blue,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EnhancedQRScannerScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'QR Oluştur',
-                    Icons.qr_code,
-                    Colors.green,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const EnhancedQRGeneratorScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'Geçmiş',
-                    Icons.history,
-                    Colors.orange,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'Favoriler',
-                    Icons.favorite,
-                    Colors.red,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoritesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'Toplu Tarama',
-                    Icons.multiple_stop,
-                    Colors.purple,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const BatchScannerScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'Gelişmiş Barkod',
-                    Icons.crop_free,
-                    Colors.indigo,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdvancedBarcodeScanner(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'QR Özelleştir',
-                    Icons.brush,
-                    Colors.teal,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CustomQRGeneratorScreen(
-                            data: 'https://example.com',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildActionCard(
-                    context,
-                    'Tema Ayarları',
-                    Icons.palette,
-                    themeProvider.primaryColor,
-                    () {
-                      FeedbackService.buttonTapFeedback();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ThemeSettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Stats Card
-            Card(
-              elevation: 2,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildQuickStat(
-                      context,
-                      scannedCount > 0 ? scannedCount.toString() : '-',
-                      'Tarama',
-                    ),
-                    Container(
-                      width: 1,
-                      height: 30,
-                      color: Colors.grey.withValues(alpha: 0.3),
-                    ),
-                    _buildQuickStat(
-                      context,
-                      createdCount > 0 ? createdCount.toString() : '-',
-                      'Oluşturma',
-                    ),
-                    Container(
-                      width: 1,
-                      height: 30,
-                      color: Colors.grey.withValues(alpha: 0.3),
-                    ),
-                    _buildQuickStat(
-                      context,
-                      themeProvider.themeColorName,
-                      'Tema',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              _buildHeaderCard(context, colorScheme),
+              const SizedBox(height: 24),
+              _buildStatsCard(context, colorScheme, themeProvider),
+              const SizedBox(height: 24),
+              _buildFeaturesGrid(context, colorScheme),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildActionCard(
+  Widget _buildHeaderCard(BuildContext context, ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(Icons.qr_code, size: 40, color: colorScheme.primary),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'QR Kod Uygulaması',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'QR kodlarını tarayın ve oluşturun',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsCard(
+    BuildContext context,
+    ColorScheme colorScheme,
+    ThemeProvider themeProvider,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HistoryScreen(),
+                  ),
+                );
+              },
+              child: _buildQuickStat(
+                context,
+                scannedCount > 0 ? scannedCount.toString() : '-',
+                'Tarama',
+              ),
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 30,
+            color: colorScheme.outline.withValues(alpha: 0.3),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EnhancedQRGeneratorScreen(),
+                  ),
+                );
+              },
+              child: _buildQuickStat(
+                context,
+                createdCount > 0 ? createdCount.toString() : '-',
+                'Oluşturma',
+              ),
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 30,
+            color: colorScheme.outline.withValues(alpha: 0.3),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ThemeSettingsScreen(),
+                  ),
+                );
+              },
+              child: _buildQuickStat(
+                context,
+                themeProvider.themeColorName,
+                'Tema',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturesGrid(BuildContext context, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Özellikler',
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.1,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildModernActionCard(
+              context,
+              'QR Tara',
+              Icons.qr_code_scanner,
+              Colors.blue,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EnhancedQRScannerScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'QR Oluştur',
+              Icons.qr_code,
+              Colors.green,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EnhancedQRGeneratorScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'Kaydedilenler',
+              Icons.history,
+              Colors.orange,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HistoryScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'Favoriler',
+              Icons.favorite,
+              Colors.red,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavoritesScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'Toplu Tarama',
+              Icons.multiple_stop,
+              Colors.purple,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BatchScannerScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'Gelişmiş Barkod',
+              Icons.crop_free,
+              Colors.indigo,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdvancedBarcodeScanner(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'QR Özelleştir',
+              Icons.brush,
+              Colors.teal,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CustomQRGeneratorScreen(
+                      data: 'https://example.com',
+                    ),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'Ayarlar',
+              Icons.settings,
+              colorScheme.primary,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildModernActionCard(
+              context,
+              'İstatistikler',
+              Icons.analytics,
+              Colors.deepPurple,
+              () {
+                FeedbackService.buttonTapFeedback();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AnalyticsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernActionCard(
     BuildContext context,
     String title,
     IconData icon,
     Color color,
     VoidCallback onTap,
   ) {
-    return Card(
-      elevation: 4,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 32, color: color),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+            width: 1,
           ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 24, color: color),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w500),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

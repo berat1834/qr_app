@@ -468,16 +468,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget _buildFavoriteCard(FavoriteItem item, int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _getColorForType(item.type),
+            color: _getColorForType(item.type).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             _getIconForType(item.type),
-            color: Colors.white,
+            color: _getColorForType(item.type),
             size: 20,
           ),
         ),

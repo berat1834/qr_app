@@ -1,10 +1,17 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 import '../services/feedback_service.dart';
 import '../services/history_service.dart';
+import '../services/premium_access_service.dart';
 import '../services/share_service.dart';
 import '../utils/qr_helpers.dart';
+
+enum ExportFormat { csv, excel, json }
 
 class BatchScanItem {
   final String data;
@@ -177,17 +184,186 @@ class _BatchScannerScreenState extends State<BatchScannerScreen> {
     );
   }
 
-  void _exportAll() {
-    final exportData = scannedItems
-        .map((item) {
-          return '${item.type}: ${item.data}\nTarih: ${_formatDateTime(item.timestamp)}\n';
-        })
-        .join('\n');
+  Future<void> _showExportFormatDialog({required bool emailMode}) async {
+    final isPremium = PremiumAccessService.premiumNotifier.value;
+    if (!isPremium) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bu özellik Premium üyelik gerektirir.')),
+      );
+      return;
+    }
 
-    final fullExport =
-        'Toplu QR Tarama Sonuçları:\nToplam: ${scannedItems.length} kod\n\n$exportData';
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(emailMode ? 'E-posta için format seçin' : 'Dışa Aktarım'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('CSV'),
+              subtitle: const Text('Excel ve analiz araçları ile uyumlu'),
+              onTap: () {
+                Navigator.pop(context);
+                _exportAll(ExportFormat.csv, emailMode: emailMode);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.grid_on),
+              title: const Text('Excel (.xls)'),
+              subtitle: const Text('Excel dosyası olarak paylaşılır'),
+              onTap: () {
+                Navigator.pop(context);
+                _exportAll(ExportFormat.excel, emailMode: emailMode);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.data_object),
+              title: const Text('JSON'),
+              subtitle: const Text('Yazılım entegrasyonları için ideal'),
+              onTap: () {
+                Navigator.pop(context);
+                _exportAll(ExportFormat.json, emailMode: emailMode);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    ShareService.shareText(fullExport);
+  Future<void> _exportAll(
+    ExportFormat format, {
+    required bool emailMode,
+  }) async {
+    if (scannedItems.isEmpty) return;
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = _fileExtensionFor(format);
+      final fileName = 'batch_qr_export_$timestamp.$extension';
+      final file = File('${tempDir.path}/$fileName');
+
+      final content = switch (format) {
+        ExportFormat.csv => _buildCsvContent(),
+        ExportFormat.excel => _buildExcelXmlContent(),
+        ExportFormat.json => _buildJsonContent(),
+      };
+
+      await file.writeAsString(content, flush: true);
+
+      final shareSubject =
+          'Toplu Tarama Dışa Aktarım (${_formatLabelFor(format)})';
+      final shareText = emailMode
+          ? 'Toplu tarama çıktısı ektedir. (${scannedItems.length} kayıt)'
+          : 'Toplu tarama çıktısı (${scannedItems.length} kayıt)';
+
+      await ShareService.shareFile(
+        file.path,
+        text: shareText,
+        subject: shareSubject,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Dışa aktarma hatası: $e')));
+    }
+  }
+
+  String _buildCsvContent() {
+    const header = 'Tip,Icerik,Tarih,Durum';
+    final rows = scannedItems.map((item) {
+      final safeData = item.data.replaceAll('"', '""');
+      final state = item.isProcessed ? 'Kaydedildi' : 'Kaydedilmedi';
+      return '${item.type},"$safeData",${_formatDateTime(item.timestamp)},$state';
+    });
+    return '$header\n${rows.join('\n')}';
+  }
+
+  String _buildJsonContent() {
+    final data = scannedItems
+        .map(
+          (item) => {
+            'type': item.type,
+            'data': item.data,
+            'timestamp': item.timestamp.toIso8601String(),
+            'isProcessed': item.isProcessed,
+          },
+        )
+        .toList();
+    return const JsonEncoder.withIndent('  ').convert(data);
+  }
+
+  String _buildExcelXmlContent() {
+    final buffer = StringBuffer();
+    buffer.writeln('<?xml version="1.0"?>');
+    buffer.writeln('<?mso-application progid="Excel.Sheet"?>');
+    buffer.writeln(
+      '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" '
+      'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">',
+    );
+    buffer.writeln('<Worksheet ss:Name="QR Export"><Table>');
+
+    buffer.writeln('<Row>');
+    buffer.writeln('<Cell><Data ss:Type="String">Tip</Data></Cell>');
+    buffer.writeln('<Cell><Data ss:Type="String">İçerik</Data></Cell>');
+    buffer.writeln('<Cell><Data ss:Type="String">Tarih</Data></Cell>');
+    buffer.writeln('<Cell><Data ss:Type="String">Durum</Data></Cell>');
+    buffer.writeln('</Row>');
+
+    for (final item in scannedItems) {
+      buffer.writeln('<Row>');
+      buffer.writeln(
+        '<Cell><Data ss:Type="String">${_escapeXml(item.type)}</Data></Cell>',
+      );
+      buffer.writeln(
+        '<Cell><Data ss:Type="String">${_escapeXml(item.data)}</Data></Cell>',
+      );
+      buffer.writeln(
+        '<Cell><Data ss:Type="String">${_escapeXml(_formatDateTime(item.timestamp))}</Data></Cell>',
+      );
+      buffer.writeln(
+        '<Cell><Data ss:Type="String">${item.isProcessed ? 'Kaydedildi' : 'Kaydedilmedi'}</Data></Cell>',
+      );
+      buffer.writeln('</Row>');
+    }
+
+    buffer.writeln('</Table></Worksheet></Workbook>');
+    return buffer.toString();
+  }
+
+  String _escapeXml(String value) {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&apos;');
+  }
+
+  String _fileExtensionFor(ExportFormat format) {
+    switch (format) {
+      case ExportFormat.csv:
+        return 'csv';
+      case ExportFormat.excel:
+        return 'xls';
+      case ExportFormat.json:
+        return 'json';
+    }
+  }
+
+  String _formatLabelFor(ExportFormat format) {
+    switch (format) {
+      case ExportFormat.csv:
+        return 'CSV';
+      case ExportFormat.excel:
+        return 'Excel';
+      case ExportFormat.json:
+        return 'JSON';
+    }
   }
 
   @override
@@ -203,52 +379,83 @@ class _BatchScannerScreenState extends State<BatchScannerScreen> {
           ),
           const SizedBox(width: 16),
           if (scannedItems.isNotEmpty)
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'save_all':
-                    _saveAllToHistory();
-                    break;
-                  case 'export':
-                    _exportAll();
-                    break;
-                  case 'clear':
-                    _clearAll();
-                    break;
-                }
+            ValueListenableBuilder<bool>(
+              valueListenable: PremiumAccessService.premiumNotifier,
+              builder: (context, isPremium, _) {
+                return PopupMenuButton<String>(
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'save_all':
+                        _saveAllToHistory();
+                        break;
+                      case 'export':
+                        _showExportFormatDialog(emailMode: false);
+                        break;
+                      case 'export_email':
+                        _showExportFormatDialog(emailMode: true);
+                        break;
+                      case 'clear':
+                        _clearAll();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'save_all',
+                      child: Row(
+                        children: [
+                          Icon(Icons.save, size: 18),
+                          SizedBox(width: 8),
+                          Text('Tümünü Kaydet'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'export',
+                      enabled: isPremium,
+                      child: Row(
+                        children: [
+                          Icon(isPremium ? Icons.share : Icons.lock, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            isPremium
+                                ? 'Dışa Aktar (Paylaş)'
+                                : 'Dışa Aktar (Premium)',
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'export_email',
+                      enabled: isPremium,
+                      child: Row(
+                        children: [
+                          Icon(isPremium ? Icons.email : Icons.lock, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            isPremium
+                                ? 'Dışa Aktar (E-posta)'
+                                : 'E-posta Export (Premium)',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'clear',
+                      child: Row(
+                        children: [
+                          Icon(Icons.clear_all, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text(
+                            'Tümünü Sil',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
               },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'save_all',
-                  child: Row(
-                    children: [
-                      Icon(Icons.save, size: 18),
-                      SizedBox(width: 8),
-                      Text('Tümünü Kaydet'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'export',
-                  child: Row(
-                    children: [
-                      Icon(Icons.share, size: 18),
-                      SizedBox(width: 8),
-                      Text('Dışa Aktar'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      Icon(Icons.clear_all, size: 18, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Tümünü Sil', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
             ),
         ],
       ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../services/favorites_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +33,10 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     'Konum',
     'Kartvizit',
   ];
+
+  // Advanced Settings
+  int _errorCorrectionLevel = QrErrorCorrectLevel.M; // Varsayılan Medium
+  File? _embeddedImage;
 
   // Form controllers
   final TextEditingController _textController = TextEditingController();
@@ -110,6 +116,8 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
             _buildTypeSelector(),
             const SizedBox(height: 20),
             _buildInputForm(),
+            const SizedBox(height: 20),
+            _buildAdvancedOptions(), // Yeni eklenen gelişmiş ayarlar
             const SizedBox(height: 20),
             if (qrData.isNotEmpty) ...[
               _buildQRPreview(),
@@ -441,12 +449,6 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) => _generateQR(),
         ),
-        const SizedBox(height: 8),
-        TextButton.icon(
-          onPressed: _getCurrentLocation,
-          icon: const Icon(Icons.my_location),
-          label: const Text('Mevcut Konumu Al'),
-        ),
       ],
     );
   }
@@ -517,6 +519,78 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     );
   }
 
+  Widget _buildAdvancedOptions() {
+    return Card(
+      elevation: 4,
+      child: ExpansionTile(
+        title: Text(
+          'Gelişmiş Ayarlar (Logo & Hassasiyet)',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: const Icon(Icons.settings_suggest),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Hata Düzeltme Seviyesi Seçimi
+                DropdownButtonFormField<int>(
+                  value: _errorCorrectionLevel,
+                  decoration: const InputDecoration(
+                    labelText: 'Hata Düzeltme Seviyesi',
+                    border: OutlineInputBorder(),
+                    helperText:
+                        'Yüksek seviye (H), logo eklerken veya hasarlı kodlar için önerilir.',
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: QrErrorCorrectLevel.L, child: Text('Düşük (%7)')),
+                    DropdownMenuItem(value: QrErrorCorrectLevel.M, child: Text('Orta (%15)')),
+                    DropdownMenuItem(value: QrErrorCorrectLevel.Q, child: Text('Kaliteli (%25)')),
+                    DropdownMenuItem(value: QrErrorCorrectLevel.H, child: Text('Yüksek (%30)')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _errorCorrectionLevel = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Logo Seçimi
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _pickEmbeddedImage,
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: Text(_embeddedImage == null ? 'Logo Ekle' : 'Logoyu Değiştir'),
+                      ),
+                    ),
+                    if (_embeddedImage != null) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _embeddedImage = null;
+                          });
+                        },
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        tooltip: 'Logoyu Kaldır',
+                      ),
+                      const SizedBox(width: 8),
+                      Image.file(_embeddedImage!, width: 40, height: 40, fit: BoxFit.cover),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQRPreview() {
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -552,6 +626,11 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                   child: QrImageView(
                     data: qrData,
                     version: QrVersions.auto,
+                    errorCorrectionLevel: _errorCorrectionLevel,
+                    embeddedImage: _embeddedImage != null ? FileImage(_embeddedImage!) : null,
+                    embeddedImageStyle: const QrEmbeddedImageStyle(
+                      size: Size(40, 40), // Logo boyutu
+                    ),
                     size: 200.0,
                     backgroundColor: Colors.white,
                     dataModuleStyle: QrDataModuleStyle(
@@ -778,6 +857,21 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     return buffer.toString();
   }
 
+  Future<void> _pickEmbeddedImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _embeddedImage = File(image.path);
+        // Logo eklendiğinde hata düzeltme seviyesini otomatik yükseltmek iyi bir pratiktir
+        if (_errorCorrectionLevel == QrErrorCorrectLevel.L) {
+          _errorCorrectionLevel = QrErrorCorrectLevel.Q;
+        }
+      });
+    }
+  }
+
   void _clearAllControllers() {
     _textController.clear();
     _urlController.clear();
@@ -794,19 +888,6 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     _vCardEmailController.clear();
     _vCardOrgController.clear();
     _vCardUrlController.clear();
-  }
-
-  void _getCurrentLocation() {
-    // Örnek koordinatlar (İstanbul)
-    _latitudeController.text = '41.0082';
-    _longitudeController.text = '28.9784';
-    _generateQR();
-    FeedbackService.buttonTapFeedback();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Örnek konum bilgileri yüklendi (İstanbul)'),
-      ),
-    );
   }
 
   void _copyToClipboard() {

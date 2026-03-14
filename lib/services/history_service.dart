@@ -32,6 +32,7 @@ class HistoryService {
     required String type,
     required bool isScanned,
     String? customName,
+    String? category,
   }) async {
     final history = await getHistory();
 
@@ -42,6 +43,8 @@ class HistoryService {
       date: DateTime.now(),
       isScanned: isScanned,
       customName: customName,
+      category: category,
+      isArchived: false,
     );
 
     history.insert(0, newItem); // En yeniler başta
@@ -81,6 +84,101 @@ class HistoryService {
     await _saveHistory(history);
   }
 
+  /// Kayıt öğesinin özel ismini güncelle
+  static Future<void> updateCustomName(String id, String? newName) async {
+    final history = await getHistory();
+    final index = history.indexWhere((item) => item.id == id);
+
+    if (index != -1) {
+      final oldItem = history[index];
+      final updatedItem = HistoryItem(
+        id: oldItem.id,
+        data: oldItem.data,
+        type: oldItem.type,
+        date: oldItem.date,
+        isScanned: oldItem.isScanned,
+        isArchived: oldItem.isArchived,
+        category: oldItem.category,
+        customName: newName?.isEmpty ?? true ? null : newName,
+      );
+      history[index] = updatedItem;
+      await _saveHistory(history);
+    }
+  }
+
+  /// Seçili kayıtlar için toplu isim güncelle
+  static Future<void> updateCustomNameForIds(
+    Set<String> ids,
+    String? newName,
+  ) async {
+    if (ids.isEmpty) return;
+
+    final history = await getHistory();
+    final normalizedName = newName?.isEmpty ?? true ? null : newName;
+
+    for (var i = 0; i < history.length; i++) {
+      final item = history[i];
+      if (!ids.contains(item.id)) continue;
+
+      history[i] = HistoryItem(
+        id: item.id,
+        data: item.data,
+        type: item.type,
+        date: item.date,
+        isScanned: item.isScanned,
+        isArchived: item.isArchived,
+        category: item.category,
+        customName: normalizedName,
+      );
+    }
+
+    await _saveHistory(history);
+  }
+
+  /// Kayıt öğesini arşivle/geri al
+  static Future<void> setArchived(String id, bool archived) async {
+    final history = await getHistory();
+    final index = history.indexWhere((item) => item.id == id);
+
+    if (index != -1) {
+      final item = history[index];
+      history[index] = HistoryItem(
+        id: item.id,
+        data: item.data,
+        type: item.type,
+        date: item.date,
+        isScanned: item.isScanned,
+        customName: item.customName,
+        category: item.category,
+        isArchived: archived,
+      );
+      await _saveHistory(history);
+    }
+  }
+
+  /// Seçili kayıtlar için toplu arşivleme
+  static Future<void> setArchivedForIds(Set<String> ids, bool archived) async {
+    if (ids.isEmpty) return;
+    final history = await getHistory();
+
+    for (var i = 0; i < history.length; i++) {
+      final item = history[i];
+      if (!ids.contains(item.id)) continue;
+      history[i] = HistoryItem(
+        id: item.id,
+        data: item.data,
+        type: item.type,
+        date: item.date,
+        isScanned: item.isScanned,
+        customName: item.customName,
+        category: item.category,
+        isArchived: archived,
+      );
+    }
+
+    await _saveHistory(history);
+  }
+
   /// Tüm geçmişi temizle
   static Future<void> clearHistory() async {
     final prefs = await SharedPreferences.getInstance();
@@ -106,5 +204,78 @@ class HistoryService {
     if (data.startsWith('geo:')) return 'Konum';
     if (data.startsWith('BEGIN:VCARD')) return 'Kartvizit';
     return 'Metin';
+  }
+
+  /// Kategori güncelle (tek item)
+  static Future<void> updateCategory(String id, String? category) async {
+    final history = await getHistory();
+    final updatedHistory = history.map((item) {
+      if (item.id == id) {
+        return HistoryItem(
+          id: item.id,
+          data: item.data,
+          type: item.type,
+          date: item.date,
+          customName: item.customName,
+          category: category,
+          isScanned: item.isScanned,
+          isArchived: item.isArchived,
+        );
+      }
+      return item;
+    }).toList();
+    await _saveHistory(updatedHistory);
+  }
+
+  /// Kategori güncelle (çoklu)
+  static Future<void> updateCategoryForIds(
+    Set<String> ids,
+    String? category,
+  ) async {
+    final history = await getHistory();
+    final updatedHistory = history.map((item) {
+      if (ids.contains(item.id)) {
+        return HistoryItem(
+          id: item.id,
+          data: item.data,
+          type: item.type,
+          date: item.date,
+          customName: item.customName,
+          category: category,
+          isScanned: item.isScanned,
+          isArchived: item.isArchived,
+        );
+      }
+      return item;
+    }).toList();
+    await _saveHistory(updatedHistory);
+  }
+
+  /// Mevcut kategorileri getir
+  static Future<List<String>> getUsedCategories() async {
+    final history = await getHistory();
+    final categories = history
+        .where((item) => item.category != null && item.category!.isNotEmpty)
+        .map((item) => item.category!)
+        .toSet()
+        .toList();
+    categories.sort();
+    return categories;
+  }
+
+  /// Önerilen kategoriler
+  static List<String> getSuggestedCategories() {
+    return [
+      'İş',
+      'Kişisel',
+      'Faturalar',
+      'WiFi Şifreleri',
+      'İletişim',
+      'Belgeler',
+      'Alışveriş',
+      'Seyahat',
+      'Sağlık',
+      'Eğitim',
+    ];
   }
 }

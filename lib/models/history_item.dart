@@ -11,7 +11,9 @@ class HistoryItem {
   final String type;
   final DateTime date;
   final String? customName;
+  final String? category;
   final bool isScanned;
+  final bool isArchived;
 
   const HistoryItem({
     required this.id,
@@ -19,7 +21,9 @@ class HistoryItem {
     required this.type,
     required this.date,
     this.customName,
+    this.category,
     required this.isScanned,
+    this.isArchived = false,
   });
 
   /// Bu nesneyi, JSON depolaması için bir Map'e dönüştürür.
@@ -30,7 +34,9 @@ class HistoryItem {
       'type': type,
       'date': date.toIso8601String(), // Tarihi standart bir formatta sakla
       'customName': customName,
+      'category': category,
       'isScanned': isScanned,
+      'isArchived': isArchived,
     };
   }
 
@@ -42,7 +48,10 @@ class HistoryItem {
       type: json['type'] as String,
       date: DateTime.parse(json['date'] as String), // Standart formattan oku
       customName: json['customName'] as String?,
-      isScanned: json['isScanned'] as bool? ?? false, // Geriye dönük uyumluluk için
+      category: json['category'] as String?,
+      isScanned:
+          json['isScanned'] as bool? ?? false, // Geriye dönük uyumluluk için
+      isArchived: json['isArchived'] as bool? ?? false,
     );
   }
 
@@ -63,7 +72,9 @@ class HistoryItem {
         other.type == type &&
         other.date == date &&
         other.customName == customName &&
-        other.isScanned == isScanned;
+        other.category == category &&
+        other.isScanned == isScanned &&
+        other.isArchived == isArchived;
   }
 
   @override
@@ -73,6 +84,8 @@ class HistoryItem {
         type.hashCode ^
         date.hashCode ^
         customName.hashCode ^
-        isScanned.hashCode;
+        category.hashCode ^
+        isScanned.hashCode ^
+        isArchived.hashCode;
   }
 }

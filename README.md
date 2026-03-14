@@ -87,6 +87,7 @@ Detaylar: [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)
 - [QR Kod Dersleri](docs/Flutter_QR_Kod_Dersleri.md)
 - [Kod Örnekleri](docs/Kod_Ornekleri.md)
 - [Test Kuralları](TESTING_GUIDELINES.md) ⭐
+- [Play Store Release + IAP Checklist](PLAY_STORE_RELEASE.md)
 
 ## 🛠️ Kullanılan Teknolojiler
 
