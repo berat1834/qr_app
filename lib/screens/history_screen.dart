@@ -10,14 +10,9 @@ import '../services/feedback_service.dart';
 import '../services/share_service.dart';
 import '../services/favorites_service.dart';
 import 'qr_detail_screen.dart';
-<<<<<<< HEAD
-=======
 
->>>>>>> 92e7da0 (Initial standalone deploy-ready version)
 import '../utils/qr_helpers.dart';
 import '../services/history_service.dart';
-
-enum _SortOption { date, name, type }
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -99,10 +94,7 @@ class _HistoryScreenState extends State<HistoryScreen>
           matchesArchive;
     }).toList();
     _sortHistory(filtered);
-<<<<<<< HEAD
-=======
 
->>>>>>> 92e7da0 (Initial standalone deploy-ready version)
     return Scaffold(
       appBar: AppBar(
         title: _selectionMode

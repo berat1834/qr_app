@@ -98,78 +98,63 @@ class GalleryQRService {
         torchEnabled: false,
       );
 
-      MobileScannerController? controller;
+      print('🤖 MobileScannerController oluşturuldu');
+
+      // Resmi analiz et
       try {
-        print('🔍 Gerçek QR analizi başlatıldı...');
-        print('📂 Seçilen dosya: $imagePath');
+        final BarcodeCapture? result = await controller.analyzeImage(imagePath);
+        print('✅ Analiz tamamlandı');
 
-        // Dosya mevcut mu kontrol edelim
-        final file = File(imagePath);
-        final exists = await file.exists();
-        print('📋 Dosya mevcut: $exists');
+        if (result != null && result.barcodes.isNotEmpty) {
+          print('📋 Bulunan kod sayısı: ${result.barcodes.length}');
 
-        if (!exists) {
-          print('❌ Dosya bulunamadı');
-          return null;
-        }
-
-        final size = await file.length();
-        print('📏 Dosya boyutu: $size bytes');
-
-        // MobileScannerController oluştur
-        controller = MobileScannerController(
-          detectionSpeed: DetectionSpeed.noDuplicates,
-          facing: CameraFacing.back,
-          torchEnabled: false,
-        );
-
-        print('🤖 MobileScannerController oluşturuldu');
-
-        // Resmi analiz et
-        try {
-          final BarcodeCapture? result = await controller.analyzeImage(imagePath);
-          print('✅ Analiz tamamlandı');
-
-          if (result != null && result.barcodes.isNotEmpty) {
-            print('📋 Bulunan kod sayısı: ${result.barcodes.length}');
-            for (int i = 0; i < result.barcodes.length; i++) {
-              final barcode = result.barcodes[i];
-              print(
-                '📋 Kod $i: Format=${barcode.format}, Value="${barcode.displayValue}", Raw="${barcode.rawValue}"',
-              );
-            }
-
-            final firstBarcode = result.barcodes.first;
-            final qrData =
-                firstBarcode.displayValue ?? firstBarcode.rawValue ?? '';
-
-            if (qrData.isNotEmpty) {
-              print('🎯 QR kod bulundu: $qrData');
-              return qrData;
-            }
-          }
-        } catch (analyzeError) {
-          print('💥 Analiz hatası: $analyzeError');
-          // Fallback: Basit dosya kontrolü
-          if (size > 500) {
+          for (int i = 0; i < result.barcodes.length; i++) {
+            final barcode = result.barcodes[i];
             print(
-              '🔄 Fallback: Dosya geçerli görünüyor, basit test verisi döndürülüyor',
+              '📋 Kod $i: Format=${barcode.format}, Value="${barcode.displayValue}", Raw="${barcode.rawValue}"',
             );
-            // Dosya adından QR içeriğini tahmin etmeye çalış
-            final fileName = file.path.split('/').last.toLowerCase();
-            if (fileName.contains('hello')) {
-              return 'Hello World Test QR Code';
-            } else if (fileName.contains('wifi')) {
-              return 'WiFi QR Code';
-            } else if (fileName.contains('test')) {
-              return 'Test QR Code from Gallery';
-            }
-            return 'QR Code detected from gallery image';
+          }
+
+          final firstBarcode = result.barcodes.first;
+          final qrData =
+              firstBarcode.displayValue ?? firstBarcode.rawValue ?? '';
+
+          if (qrData.isNotEmpty) {
+            print('🎯 QR kod bulundu: $qrData');
+            return qrData;
           }
         }
+      } catch (analyzeError) {
+        print('💥 Analiz hatası: $analyzeError');
 
-        print('❌ QR kod bulunamadı');
-        return null;
+      }
+
+      print('❌ QR kod bulunamadı');
+      return null;
+    } catch (e) {
+      print('💥 Genel QR analiz hatası: $e');
+      print('📋 Hata detayları: ${e.toString()}');
+      return null;
+    } finally {
+      // Controller'ı temizle
+      try {
+        await controller?.dispose();
+        print('🔒 Controller kapatıldı');
+      } catch (e) {
+        print('⚠️ Controller kapatma hatası: $e');
+      }
+    }
+  }
+
+  /// Galeriden resim seçme özelliği var mı kontrol et
+  static Future<bool> isGalleryAvailable() async {
+    try {
+      // Android ve iOS'ta genellikle galeri mevcuttur
+      return Platform.isAndroid || Platform.isIOS;
+    } catch (e) {
+      return false;
+    }
+  }
 
   /// Kamera mevcut mu kontrol et
   static Future<bool> isCameraAvailable() async {

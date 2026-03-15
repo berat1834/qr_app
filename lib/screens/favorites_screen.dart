@@ -228,26 +228,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     final filtered = filteredFavorites;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: _getColorForType(item.type).withAlpha(30),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            _getIconForType(item.type),
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          item.displayName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    return Scaffold(
+      appBar: AppBar(
+        title: selectionMode
+            ? Text('${selectedIds.length} seçili')
+            : const Text('Favoriler'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        leading: selectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    selectionMode = false;
+                    selectedIds.clear();
+                  });
+                },
+                tooltip: 'Seçimi İptal Et',
+              )
+            : null,
+        actions: [
+          if (selectionMode)
             IconButton(
               icon: const Icon(Icons.delete),
               tooltip: 'Seçili Favorileri Sil',
@@ -468,8 +468,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget _buildFavoriteCard(FavoriteItem item, int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-<<<<<<< HEAD
-<<<<<<< HEAD
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -477,34 +475,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: _getColorForType(item.type).withValues(alpha: 0.1),
-=======
-=======
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
->>>>>>> 92e7da0 (Initial standalone deploy-ready version)
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-<<<<<<< HEAD
-            color: _getColorForType(item.type),
->>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
-=======
-            color: _getColorForType(item.type).withValues(alpha: 0.1),
->>>>>>> 92e7da0 (Initial standalone deploy-ready version)
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             _getIconForType(item.type),
-<<<<<<< HEAD
-<<<<<<< HEAD
             color: _getColorForType(item.type),
-=======
-            color: Colors.white,
->>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
-=======
-            color: _getColorForType(item.type),
->>>>>>> 92e7da0 (Initial standalone deploy-ready version)
             size: 20,
           ),
         ),

@@ -33,7 +33,6 @@ class HistoryService {
     required bool isScanned,
     String? customName,
     String? category,
-    bool isArchived = false,
   }) async {
     final history = await getHistory();
 
@@ -45,7 +44,7 @@ class HistoryService {
       isScanned: isScanned,
       customName: customName,
       category: category,
-      isArchived: isArchived,
+      isArchived: false,
     );
 
     history.insert(0, newItem); // En yeniler başta
