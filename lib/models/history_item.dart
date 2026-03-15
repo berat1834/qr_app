@@ -11,9 +11,13 @@ class HistoryItem {
   final String type;
   final DateTime date;
   final String? customName;
+<<<<<<< HEAD
   final String? category;
   final bool isScanned;
   final bool isArchived;
+=======
+  final bool isScanned;
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
 
   const HistoryItem({
     required this.id,
@@ -21,9 +25,13 @@ class HistoryItem {
     required this.type,
     required this.date,
     this.customName,
+<<<<<<< HEAD
     this.category,
     required this.isScanned,
     this.isArchived = false,
+=======
+    required this.isScanned,
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   });
 
   /// Bu nesneyi, JSON depolaması için bir Map'e dönüştürür.
@@ -34,9 +42,13 @@ class HistoryItem {
       'type': type,
       'date': date.toIso8601String(), // Tarihi standart bir formatta sakla
       'customName': customName,
+<<<<<<< HEAD
       'category': category,
       'isScanned': isScanned,
       'isArchived': isArchived,
+=======
+      'isScanned': isScanned,
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
     };
   }
 
@@ -48,10 +60,13 @@ class HistoryItem {
       type: json['type'] as String,
       date: DateTime.parse(json['date'] as String), // Standart formattan oku
       customName: json['customName'] as String?,
-      category: json['category'] as String?,
-      isScanned:
-          json['isScanned'] as bool? ?? false, // Geriye dönük uyumluluk için
-      isArchived: json['isArchived'] as bool? ?? false,
+<<<<<<< HEAD
+        category: json['category'] as String?,
+        isScanned: json['isScanned'] as bool? ?? false, // Geriye dönük uyumluluk için
+        isArchived: json['isArchived'] as bool? ?? false,
+=======
+      isScanned: json['isScanned'] as bool? ?? false, // Geriye dönük uyumluluk için
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
     );
   }
 
@@ -72,9 +87,13 @@ class HistoryItem {
         other.type == type &&
         other.date == date &&
         other.customName == customName &&
+<<<<<<< HEAD
         other.category == category &&
         other.isScanned == isScanned &&
         other.isArchived == isArchived;
+=======
+        other.isScanned == isScanned;
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   }
 
   @override
@@ -84,8 +103,12 @@ class HistoryItem {
         type.hashCode ^
         date.hashCode ^
         customName.hashCode ^
+<<<<<<< HEAD
         category.hashCode ^
         isScanned.hashCode ^
         isArchived.hashCode;
+=======
+        isScanned.hashCode;
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   }
 }

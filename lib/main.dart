@@ -21,7 +21,7 @@ Future<void> main() async {
     await PremiumAccessService.initialize();
     PremiumSyncService.runStartupSyncIfEnabled();
   }
-
+=======
   runApp(
     MultiProvider(
       providers: [

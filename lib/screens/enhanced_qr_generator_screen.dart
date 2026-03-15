@@ -37,7 +37,6 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   // Advanced Settings
   int _errorCorrectionLevel = QrErrorCorrectLevel.M; // Varsayılan Medium
   File? _embeddedImage;
-
   // Form controllers
   final TextEditingController _textController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
@@ -449,6 +448,13 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) => _generateQR(),
         ),
+=======
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: _getCurrentLocation,
+          icon: const Icon(Icons.my_location),
+          label: const Text('Mevcut Konumu Al'),
+        ),
       ],
     );
   }
@@ -519,6 +525,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     );
   }
 
+<<<<<<< HEAD
   Widget _buildAdvancedOptions() {
     return Card(
       elevation: 4,
@@ -591,6 +598,8 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     );
   }
 
+=======
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   Widget _buildQRPreview() {
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -631,6 +640,77 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                     embeddedImageStyle: const QrEmbeddedImageStyle(
                       size: Size(40, 40), // Logo boyutu
                     ),
+                      Widget _buildAdvancedOptions() {
+                        return Card(
+                          elevation: 4,
+                          child: ExpansionTile(
+                            title: Text(
+                              'Gelişmiş Ayarlar (Logo & Hassasiyet)',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            leading: const Icon(Icons.settings_suggest),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  children: [
+                                    // Hata Düzeltme Seviyesi Seçimi
+                                    DropdownButtonFormField<int>(
+                                      value: _errorCorrectionLevel,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Hata Düzeltme Seviyesi',
+                                        border: OutlineInputBorder(),
+                                        helperText:
+                                            'Yüksek seviye (H), logo eklerken veya hasarlı kodlar için önerilir.',
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem(value: QrErrorCorrectLevel.L, child: Text('Düşük (%7)')),
+                                        DropdownMenuItem(value: QrErrorCorrectLevel.M, child: Text('Orta (%15)')),
+                                        DropdownMenuItem(value: QrErrorCorrectLevel.Q, child: Text('Kaliteli (%25)')),
+                                        DropdownMenuItem(value: QrErrorCorrectLevel.H, child: Text('Yüksek (%30)')),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _errorCorrectionLevel = value!;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 16),
+                                    // Logo Seçimi
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: OutlinedButton.icon(
+                                            onPressed: _pickEmbeddedImage,
+                                            icon: const Icon(Icons.add_photo_alternate),
+                                            label: Text(_embeddedImage == null ? 'Logo Ekle' : 'Logoyu Değiştir'),
+                                          ),
+                                        ),
+                                        if (_embeddedImage != null) ...[
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _embeddedImage = null;
+                                              });
+                                            },
+                                            icon: const Icon(Icons.delete, color: Colors.red),
+                                            tooltip: 'Logoyu Kaldır',
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Image.file(_embeddedImage!, width: 40, height: 40, fit: BoxFit.cover),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     size: 200.0,
                     backgroundColor: Colors.white,
                     dataModuleStyle: QrDataModuleStyle(
@@ -857,6 +937,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     return buffer.toString();
   }
 
+<<<<<<< HEAD
   Future<void> _pickEmbeddedImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -872,7 +953,35 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     }
   }
 
+=======
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   void _clearAllControllers() {
+      Future<void> _pickEmbeddedImage() async {
+        final ImagePicker picker = ImagePicker();
+        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+        if (image != null) {
+          setState(() {
+            _embeddedImage = File(image.path);
+            // Logo eklendiğinde hata düzeltme seviyesini otomatik yükseltmek iyi bir pratiktir
+            if (_errorCorrectionLevel == QrErrorCorrectLevel.L) {
+              _errorCorrectionLevel = QrErrorCorrectLevel.Q;
+            }
+          });
+        }
+      }
+      void _getCurrentLocation() {
+        // Örnek koordinatlar (İstanbul)
+        _latitudeController.text = '41.0082';
+        _longitudeController.text = '28.9784';
+        _generateQR();
+        FeedbackService.buttonTapFeedback();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Örnek konum bilgileri yüklendi (İstanbul)'),
+          ),
+        );
+      }
     _textController.clear();
     _urlController.clear();
     _phoneController.clear();
@@ -890,6 +999,22 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     _vCardUrlController.clear();
   }
 
+<<<<<<< HEAD
+=======
+  void _getCurrentLocation() {
+    // Örnek koordinatlar (İstanbul)
+    _latitudeController.text = '41.0082';
+    _longitudeController.text = '28.9784';
+    _generateQR();
+    FeedbackService.buttonTapFeedback();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Örnek konum bilgileri yüklendi (İstanbul)'),
+      ),
+    );
+  }
+
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   void _copyToClipboard() {
     Clipboard.setData(ClipboardData(text: qrData));
     FeedbackService.buttonTapFeedback();

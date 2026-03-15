@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,6 +15,16 @@ import '../utils/qr_helpers.dart';
 
 enum ExportFormat { csv, excel, json }
 
+=======
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../services/feedback_service.dart';
+import '../services/history_service.dart';
+import '../services/share_service.dart';
+import '../utils/qr_helpers.dart';
+
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
 class BatchScanItem {
   final String data;
   final String type;
@@ -184,6 +196,7 @@ class _BatchScannerScreenState extends State<BatchScannerScreen> {
     );
   }
 
+<<<<<<< HEAD
   Future<void> _showExportFormatDialog({required bool emailMode}) async {
     final isPremium = PremiumAccessService.premiumNotifier.value;
     if (!isPremium) {
@@ -364,6 +377,19 @@ class _BatchScannerScreenState extends State<BatchScannerScreen> {
       case ExportFormat.json:
         return 'JSON';
     }
+=======
+  void _exportAll() {
+    final exportData = scannedItems
+        .map((item) {
+          return '${item.type}: ${item.data}\nTarih: ${_formatDateTime(item.timestamp)}\n';
+        })
+        .join('\n');
+
+    final fullExport =
+        'Toplu QR Tarama Sonuçları:\nToplam: ${scannedItems.length} kod\n\n$exportData';
+
+    ShareService.shareText(fullExport);
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
   }
 
   @override
@@ -379,6 +405,7 @@ class _BatchScannerScreenState extends State<BatchScannerScreen> {
           ),
           const SizedBox(width: 16),
           if (scannedItems.isNotEmpty)
+<<<<<<< HEAD
             ValueListenableBuilder<bool>(
               valueListenable: PremiumAccessService.premiumNotifier,
               builder: (context, isPremium, _) {
@@ -456,6 +483,54 @@ class _BatchScannerScreenState extends State<BatchScannerScreen> {
                   ],
                 );
               },
+=======
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'save_all':
+                    _saveAllToHistory();
+                    break;
+                  case 'export':
+                    _exportAll();
+                    break;
+                  case 'clear':
+                    _clearAll();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'save_all',
+                  child: Row(
+                    children: [
+                      Icon(Icons.save, size: 18),
+                      SizedBox(width: 8),
+                      Text('Tümünü Kaydet'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'export',
+                  child: Row(
+                    children: [
+                      Icon(Icons.share, size: 18),
+                      SizedBox(width: 8),
+                      Text('Dışa Aktar'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'clear',
+                  child: Row(
+                    children: [
+                      Icon(Icons.clear_all, size: 18, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Tümünü Sil', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+>>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
             ),
         ],
       ),
