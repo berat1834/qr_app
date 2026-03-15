@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <<<<<<< HEAD:android/temp_project/android/app/src/main/AndroidManifest.xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
@@ -21,6 +22,13 @@
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true"
         tools:replace="android:label">
+=======
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:label="temp_project"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+>>>>>>> 9cc3d20 (İlk proje yüklemesi)
         <activity
             android:name=".MainActivity"
             android:exported="true"

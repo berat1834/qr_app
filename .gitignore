@@ -1,3 +1,20 @@
+# log dosyası ve diğer gereksiz dosyalar için ignore ayarları
+log.txt
+*.log
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.dart_tool/
+.idea/
+*.iml
+*.swp
+*.swo
+*.tmp
+*.bak
+*.DS_Store
+.vscode/
 # Miscellaneous
 *.class
 *.log
