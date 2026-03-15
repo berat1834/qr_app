@@ -12,6 +12,9 @@
 .swiftpm/
 migrate_working_dir/
 
+# Proje kökünde oluşan log dosyası hariç tutulur
+log.txt
+
 # IntelliJ related
 *.iml
 *.ipr

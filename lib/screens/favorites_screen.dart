@@ -469,6 +469,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
 <<<<<<< HEAD
+<<<<<<< HEAD
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -477,21 +478,33 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           decoration: BoxDecoration(
             color: _getColorForType(item.type).withValues(alpha: 0.1),
 =======
+=======
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
+<<<<<<< HEAD
             color: _getColorForType(item.type),
 >>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
+=======
+            color: _getColorForType(item.type).withValues(alpha: 0.1),
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             _getIconForType(item.type),
 <<<<<<< HEAD
+<<<<<<< HEAD
             color: _getColorForType(item.type),
 =======
             color: Colors.white,
 >>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
+=======
+            color: _getColorForType(item.type),
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
             size: 20,
           ),
         ),

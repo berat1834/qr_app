@@ -88,8 +88,12 @@ Detaylar: [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)
 - [Kod Örnekleri](docs/Kod_Ornekleri.md)
 - [Test Kuralları](TESTING_GUIDELINES.md) ⭐
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
+=======
+- [Play Store Release + IAP Checklist](PLAY_STORE_RELEASE.md)
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
 
 ## 🛠️ Kullanılan Teknolojiler
 

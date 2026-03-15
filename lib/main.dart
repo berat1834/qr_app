@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+<<<<<<< HEAD
   // Sadece Android ve iOS'ta Firebase ve Premium servislerini başlat
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     await Firebase.initializeApp(
@@ -22,6 +23,14 @@ Future<void> main() async {
     PremiumSyncService.runStartupSyncIfEnabled();
   }
 =======
+=======
+  // Firebase Initialization
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await PremiumAccessService.initialize();
+  PremiumSyncService.runStartupSyncIfEnabled();
+
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   runApp(
     MultiProvider(
       providers: [

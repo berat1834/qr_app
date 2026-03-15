@@ -37,6 +37,10 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   // Advanced Settings
   int _errorCorrectionLevel = QrErrorCorrectLevel.M; // Varsayılan Medium
   File? _embeddedImage;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   // Form controllers
   final TextEditingController _textController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
@@ -448,6 +452,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) => _generateQR(),
         ),
+<<<<<<< HEAD
 =======
         const SizedBox(height: 8),
         TextButton.icon(
@@ -455,6 +460,8 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
           icon: const Icon(Icons.my_location),
           label: const Text('Mevcut Konumu Al'),
         ),
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
       ],
     );
   }
@@ -526,6 +533,9 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   Widget _buildAdvancedOptions() {
     return Card(
       elevation: 4,
@@ -598,8 +608,11 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     );
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   Widget _buildQRPreview() {
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -640,6 +653,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                     embeddedImageStyle: const QrEmbeddedImageStyle(
                       size: Size(40, 40), // Logo boyutu
                     ),
+<<<<<<< HEAD
                       Widget _buildAdvancedOptions() {
                         return Card(
                           elevation: 4,
@@ -711,6 +725,8 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                           ),
                         );
                       }
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
                     size: 200.0,
                     backgroundColor: Colors.white,
                     dataModuleStyle: QrDataModuleStyle(
@@ -938,6 +954,9 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   Future<void> _pickEmbeddedImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -953,8 +972,11 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     }
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   void _clearAllControllers() {
       Future<void> _pickEmbeddedImage() async {
         final ImagePicker picker = ImagePicker();
@@ -1000,6 +1022,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   void _getCurrentLocation() {
     // Örnek koordinatlar (İstanbul)
@@ -1015,6 +1038,8 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
 >>>>>>> fe1c515 (Goodbye 2025, thanks for the lessons.)
+=======
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
   void _copyToClipboard() {
     Clipboard.setData(ClipboardData(text: qrData));
     FeedbackService.buttonTapFeedback();

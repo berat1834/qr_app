@@ -10,6 +10,10 @@ import '../services/feedback_service.dart';
 import '../services/share_service.dart';
 import '../services/favorites_service.dart';
 import 'qr_detail_screen.dart';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
 import '../utils/qr_helpers.dart';
 import '../services/history_service.dart';
 
@@ -21,6 +25,8 @@ class HistoryScreen extends StatefulWidget {
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
+
+enum _SortOption { date, name, type }
 
 class _HistoryScreenState extends State<HistoryScreen>
     with TickerProviderStateMixin, RouteAware {
@@ -93,6 +99,10 @@ class _HistoryScreenState extends State<HistoryScreen>
           matchesArchive;
     }).toList();
     _sortHistory(filtered);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 92e7da0 (Initial standalone deploy-ready version)
     return Scaffold(
       appBar: AppBar(
         title: _selectionMode
@@ -1537,8 +1547,6 @@ class _HistoryScreenState extends State<HistoryScreen>
     );
   }
 
-  // Unused method removed: _showEditQRDialog
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -1549,11 +1557,5 @@ class _HistoryScreenState extends State<HistoryScreen>
     if (route is PageRoute) {
       // routeObserver.subscribe(this, route); // main.dart'ta bir observer lazım
     }
-  }
-
-  @override
-  void dispose() {
-    // routeObserver.unsubscribe(this); // Eğer subscribe edildiyse
-    super.dispose();
   }
 }
