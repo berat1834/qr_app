@@ -7,15 +7,20 @@ import 'package:qr_app/services/premium_sync_service.dart';
 import 'firebase_options.dart';
 import 'providers/enhanced_theme_provider.dart';
 import 'screens/simple_home_screen.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase Initialization
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  await PremiumAccessService.initialize();
-  PremiumSyncService.runStartupSyncIfEnabled();
+  // Sadece Android ve iOS'ta Firebase ve Premium servislerini başlat
+  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await PremiumAccessService.initialize();
+    PremiumSyncService.runStartupSyncIfEnabled();
+  }
 
   runApp(
     MultiProvider(
