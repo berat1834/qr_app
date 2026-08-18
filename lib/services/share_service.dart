@@ -1,6 +1,10 @@
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+
+// Fiyat alarmı paylaşım template'leri
+enum PriceAlertShareTemplate { compact, detailed }
 
 class ShareService {
   // Genel paylaşım
@@ -16,10 +20,80 @@ class ShareService {
     await Share.shareXFiles([XFile(filePath)], text: text, subject: subject);
   }
 
+  // Fiyat alarmı template şablonları
+  static Future<void> sharePriceAlert({
+    required String productName,
+    required String barcode,
+    required double? currentPrice,
+    required double? targetPrice,
+    PriceAlertShareTemplate template = PriceAlertShareTemplate.compact,
+  }) async {
+    final message = formatPriceAlertForSharing(
+      productName: productName,
+      barcode: barcode,
+      currentPrice: currentPrice,
+      targetPrice: targetPrice,
+      template: template,
+    );
+
+    await shareText(message, subject: 'Fiyat Alarmı: $productName');
+  }
+
+  // Fiyat alarmı mesajını format et
+  static String formatPriceAlertForSharing({
+    required String productName,
+    required String barcode,
+    required double? currentPrice,
+    required double? targetPrice,
+    PriceAlertShareTemplate template = PriceAlertShareTemplate.compact,
+  }) {
+    final currentPriceStr = currentPrice?.toStringAsFixed(2) ?? '-';
+    final targetPriceStr = targetPrice?.toStringAsFixed(2) ?? '-';
+
+    if (template == PriceAlertShareTemplate.compact) {
+      // Kısa format
+      return '''
+💰 $productName
+
+Hedef: $targetPriceStr ₺
+Güncel: $currentPriceStr ₺
+
+🏷️ $barcode
+
+QR Tarayıcı Uygulaması''';
+    } else {
+      // Uzun format (detailed)
+      final savings = (targetPrice != null && currentPrice != null)
+          ? (targetPrice - currentPrice).toStringAsFixed(2)
+          : '-';
+      final percentOff = (targetPrice != null && currentPrice != null)
+          ? ((1 - currentPrice / targetPrice) * 100).toStringAsFixed(1)
+          : '-';
+
+      return '''
+🎉 FİYAT ALARMINA ULAŞILDI!
+
+📦 Ürün: $productName
+
+💵 FIYAT BİLGİLERİ
+├─ Hedef Fiyat: $targetPriceStr ₺
+├─ Güncel Fiyat: $currentPriceStr ₺
+├─ Tasarruf: $savings ₺
+└─ İndirim Yüzdesi: %$percentOff
+
+🏷️ Barkod: $barcode
+
+---
+QR Tarayıcı Uygulaması ile kontrol et:
+Alarmlar 📱 → Detayı Gör → İnceleme Yap
+''';
+    }
+  }
+
   // WhatsApp'a direkt paylaşım
   static Future<void> shareToWhatsApp(String text) async {
     final String whatsappUrl =
-        "whatsapp://send?text=${Uri.encodeComponent(text)}";
+        'whatsapp://send?text=${Uri.encodeComponent(text)}';
 
     if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
       await launchUrl(Uri.parse(whatsappUrl));
@@ -31,7 +105,7 @@ class ShareService {
 
   // Telegram'a direkt paylaşım
   static Future<void> shareToTelegram(String text) async {
-    final String telegramUrl = "tg://msg?text=${Uri.encodeComponent(text)}";
+    final String telegramUrl = 'tg://msg?text=${Uri.encodeComponent(text)}';
 
     if (await canLaunchUrl(Uri.parse(telegramUrl))) {
       await launchUrl(Uri.parse(telegramUrl));
@@ -47,7 +121,7 @@ class ShareService {
     String subject = 'QR Kod İçeriği',
   }) async {
     final String emailUrl =
-        "mailto:?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(text)}";
+        'mailto:?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(text)}';
 
     if (await canLaunchUrl(Uri.parse(emailUrl))) {
       await launchUrl(Uri.parse(emailUrl));
@@ -59,7 +133,7 @@ class ShareService {
 
   // SMS paylaşımı
   static Future<void> shareToSMS(String text) async {
-    final String smsUrl = "sms:?body=${Uri.encodeComponent(text)}";
+    final String smsUrl = 'sms:?body=${Uri.encodeComponent(text)}';
 
     if (await canLaunchUrl(Uri.parse(smsUrl))) {
       await launchUrl(Uri.parse(smsUrl));
@@ -122,9 +196,9 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
   static Future<void> showQuickShareOptions(
     String data,
     String type,
-    context,
+    BuildContext context,
   ) async {
-    String formattedContent = _formatContentForSharing(data, type);
+    final String formattedContent = _formatContentForSharing(data, type);
 
     showModalBottomSheet(
       context: context,
@@ -132,6 +206,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -139,7 +214,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
               Container(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Paylaş',
+                  loc.shareTitle,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -147,7 +222,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
               ),
               ListTile(
                 leading: const Icon(Icons.share, color: Colors.blue),
-                title: const Text('Genel Paylaşım'),
+                title: Text(loc.shareGeneral),
                 onTap: () {
                   Navigator.pop(context);
                   shareText(formattedContent);
@@ -155,7 +230,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
               ),
               ListTile(
                 leading: const Icon(Icons.chat, color: Colors.green),
-                title: const Text('WhatsApp'),
+                title: Text(loc.shareWhatsApp),
                 onTap: () {
                   Navigator.pop(context);
                   shareToWhatsApp(formattedContent);
@@ -163,7 +238,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
               ),
               ListTile(
                 leading: const Icon(Icons.telegram, color: Colors.blue),
-                title: const Text('Telegram'),
+                title: Text(loc.shareTelegram),
                 onTap: () {
                   Navigator.pop(context);
                   shareToTelegram(formattedContent);
@@ -171,7 +246,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
               ),
               ListTile(
                 leading: const Icon(Icons.email, color: Colors.red),
-                title: const Text('E-mail'),
+                title: Text(loc.shareEmail),
                 onTap: () {
                   Navigator.pop(context);
                   shareToEmail(formattedContent);
@@ -179,7 +254,7 @@ Google Maps: https://maps.google.com/?q=$latitude,$longitude
               ),
               ListTile(
                 leading: const Icon(Icons.sms, color: Colors.orange),
-                title: const Text('SMS'),
+                title: Text(loc.shareSms),
                 onTap: () {
                   Navigator.pop(context);
                   shareToSMS(formattedContent);

@@ -32,6 +32,9 @@ class ReceiptVerificationService {
     'RECEIPT_VERIFIER_URL',
     defaultValue: 'http://10.0.2.2:8080',
   );
+  // Production build'da yanlış backend URL'si kullanılırsa assert ile uyarı ver
+  static bool get _isBackendConfigured =>
+      _backendBaseUrl != 'http://10.0.2.2:8080';
 
   static const String _playPackageName = String.fromEnvironment(
     'PLAY_PACKAGE_NAME',
@@ -41,6 +44,24 @@ class ReceiptVerificationService {
   static Future<VerificationResult> verifyPurchase(
     PurchaseDetails purchaseDetails,
   ) async {
+    assert(
+      _isBackendConfigured,
+      'Production build için RECEIPT_VERIFIER_URL tanımlanmalı!',
+    );
+
+    // Release modunda backend URL yapılandırılmamışsa crash yerine güvenli hata dön
+    if (kReleaseMode && !_isBackendConfigured) {
+      debugPrint(
+        'UYARI: Release build\'da RECEIPT_VERIFIER_URL tanımlı değil. '
+        'Satın alma doğrulaması atlanıyor.',
+      );
+      return VerificationResult.failure(
+        message:
+            'Doğrulama sunucusu yapılandırılmadı. Lütfen destek ile iletişime geçin.',
+        code: 'BACKEND_NOT_CONFIGURED',
+      );
+    }
+
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
         return await _verifyGooglePlay(purchaseDetails);

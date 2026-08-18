@@ -28,11 +28,16 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  in_app_review: ^2.0.8
   google_sign_in: ^6.2.1
   googleapis: ^13.1.0
   http: ^1.2.1
   flutter:
     sdk: flutter
+
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -51,8 +56,10 @@ dependencies:
   shared_preferences: ^2.3.2   # Tema kaydetme için
   lottie: ^3.1.2               # Animasyon için
   provider: ^6.1.2             # State management için
+  connectivity_plus: ^6.0.0    # Ağ durumu dinleyici için
   fl_chart: ^1.1.1             # Grafik ve chart görselleştirme için
   in_app_purchase: ^3.2.0      # Premium satın alma için
+  firebase_performance: ^0.10.1+10  # Performans izleme için
 
   # Yedekleme/geri yükleme için gerekli paketler
   # file_picker: any  # Geçici olarak kapalı - Android build sorunu
@@ -61,6 +68,14 @@ dependencies:
   # Analytics ve monitoring için
   firebase_core: ^3.3.0
   firebase_analytics: ^11.1.0
+  firebase_crashlytics: ^4.0.0
+
+  # Native reklamlar için
+  google_mobile_ads: ^5.0.0
+
+  # Push notifications için
+  flutter_local_notifications: ^18.0.0
+  timezone: ^0.9.3
 
 dev_dependencies:
   flutter_test:
@@ -77,7 +92,9 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
 flutter:
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -1,17 +1,43 @@
+﻿// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/enhanced_theme_provider.dart';
 import '../services/feedback_service.dart';
 
 class ThemeSettingsScreen extends StatelessWidget {
   const ThemeSettingsScreen({super.key});
 
+  Color _colorForTheme(AppThemeColor color) {
+    switch (color) {
+      case AppThemeColor.blue:
+        return Colors.blue;
+      case AppThemeColor.green:
+        return Colors.green;
+      case AppThemeColor.purple:
+        return Colors.purple;
+      case AppThemeColor.orange:
+        return Colors.orange;
+      case AppThemeColor.pink:
+        return Colors.pink;
+      case AppThemeColor.teal:
+        return Colors.teal;
+      case AppThemeColor.indigo:
+        return Colors.indigo;
+      case AppThemeColor.red:
+        return Colors.red;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tema Ayarları'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(loc.themeSettings),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.palette),
@@ -19,7 +45,7 @@ class ThemeSettingsScreen extends StatelessWidget {
               FeedbackService.buttonTapFeedback();
               _showColorPicker(context);
             },
-            tooltip: 'Hızlı Renk Seçimi',
+            tooltip: loc.themeQuickColorPicker,
           ),
         ],
       ),
@@ -49,6 +75,7 @@ class ThemeSettingsScreen extends StatelessWidget {
     BuildContext context,
     ThemeProvider themeProvider,
   ) {
+    final loc = AppLocalizations.of(context)!;
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -71,7 +98,7 @@ class ThemeSettingsScreen extends StatelessWidget {
             Icon(Icons.palette, size: 48, color: themeProvider.primaryColor),
             const SizedBox(height: 12),
             Text(
-              'Mevcut Tema',
+              loc.themeCurrentTheme,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: themeProvider.primaryColor,
@@ -79,7 +106,7 @@ class ThemeSettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '${themeProvider.themeColorName} • ${themeProvider.themeModeString}',
+              '${_getLocalizedColorName(loc, themeProvider.themeColor)} • ${_getLocalizedThemeModeName(loc, themeProvider.themeMode)}',
               style: Theme.of(
                 context,
               ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
@@ -94,6 +121,7 @@ class ThemeSettingsScreen extends StatelessWidget {
     BuildContext context,
     ThemeProvider themeProvider,
   ) {
+    final loc = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -105,7 +133,7 @@ class ThemeSettingsScreen extends StatelessWidget {
                 Icon(Icons.brightness_6, color: themeProvider.primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Tema Modu',
+                  loc.themeModeTitle,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -115,8 +143,8 @@ class ThemeSettingsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ...AppThemeMode.values.map((mode) {
               return RadioListTile<AppThemeMode>(
-                title: Text(_getThemeModeTitle(mode)),
-                subtitle: Text(_getThemeModeDescription(mode)),
+                title: Text(_getLocalizedThemeModeName(loc, mode)),
+                subtitle: Text(_getThemeModeDescription(loc, mode)),
                 value: mode,
                 groupValue: themeProvider.themeMode,
                 activeColor: themeProvider.primaryColor,
@@ -139,6 +167,7 @@ class ThemeSettingsScreen extends StatelessWidget {
     BuildContext context,
     ThemeProvider themeProvider,
   ) {
+    final loc = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -150,7 +179,7 @@ class ThemeSettingsScreen extends StatelessWidget {
                 Icon(Icons.color_lens, color: themeProvider.primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Renk Teması',
+                  loc.themeColorThemeTitle,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -169,58 +198,35 @@ class ThemeSettingsScreen extends StatelessWidget {
               ),
               itemCount: AppThemeColor.values.length,
               itemBuilder: (context, index) {
-                final color = AppThemeColor.values[index];
-                final isSelected = themeProvider.themeColor == color;
-
+                final colorEnum = AppThemeColor.values[index];
+                final previewColor = _colorForTheme(colorEnum);
+                final isSelected = themeProvider.themeColor == colorEnum;
                 return GestureDetector(
                   onTap: () async {
                     FeedbackService.buttonTapFeedback();
-                    await themeProvider.setThemeColor(color);
+                    await themeProvider.setThemeColor(colorEnum);
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: _getColorFromTheme(color),
-                      borderRadius: BorderRadius.circular(16),
+                      color: previewColor,
+                      shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: Colors.white, width: 3)
-                          : null,
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: _getColorFromTheme(
-                                  color,
-                                ).withValues(alpha: 0.4),
-                                spreadRadius: 2,
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : [
-                              BoxShadow(
-                                color: Colors.grey.withValues(alpha: 0.2),
-                                spreadRadius: 1,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                    ),
-                    child: Center(
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 24,
-                            )
+                          ? Border.all(color: Colors.black, width: 3)
                           : null,
                     ),
+                    child: isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 20)
+                        : null,
                   ),
                 );
               },
             ),
             const SizedBox(height: 16),
             Text(
-              'Seçilen: ${themeProvider.themeColorName}',
+              loc.themeSelectedColor(
+                _getLocalizedColorName(loc, themeProvider.themeColor),
+              ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: themeProvider.primaryColor,
                 fontWeight: FontWeight.w500,
@@ -236,6 +242,7 @@ class ThemeSettingsScreen extends StatelessWidget {
     BuildContext context,
     ThemeProvider themeProvider,
   ) {
+    final loc = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -247,7 +254,7 @@ class ThemeSettingsScreen extends StatelessWidget {
                 Icon(Icons.preview, color: themeProvider.primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Tema Önizleme',
+                  loc.themePreviewTitle,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -276,12 +283,12 @@ class ThemeSettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'QR Master',
+                              loc.appTitle,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             Text(
-                              'Tema önizlemesi',
+                              loc.themePreviewSubtitle,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: Colors.grey[600]),
                             ),
@@ -297,7 +304,7 @@ class ThemeSettingsScreen extends StatelessWidget {
                         child: ElevatedButton.icon(
                           onPressed: () => FeedbackService.buttonTapFeedback(),
                           icon: const Icon(Icons.qr_code_scanner),
-                          label: const Text('Tara'),
+                          label: Text(loc.homeActionScanQr),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -305,7 +312,7 @@ class ThemeSettingsScreen extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () => FeedbackService.buttonTapFeedback(),
                           icon: const Icon(Icons.qr_code),
-                          label: const Text('Oluştur'),
+                          label: Text(loc.homeActionCreateQr),
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: themeProvider.primaryColor),
                             foregroundColor: themeProvider.primaryColor,
@@ -321,7 +328,9 @@ class ThemeSettingsScreen extends StatelessWidget {
                       size: 18,
                       color: themeProvider.primaryColor,
                     ),
-                    label: Text(themeProvider.themeColorName),
+                    label: Text(
+                      _getLocalizedColorName(loc, themeProvider.themeColor),
+                    ),
                     backgroundColor: themeProvider.primaryColor.withValues(
                       alpha: 0.1,
                     ),
@@ -336,6 +345,7 @@ class ThemeSettingsScreen extends StatelessWidget {
   }
 
   void _showColorPicker(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -356,7 +366,7 @@ class ThemeSettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Hızlı Renk Seçimi',
+              loc.themeQuickColorPicker,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -367,12 +377,14 @@ class ThemeSettingsScreen extends StatelessWidget {
                 return Wrap(
                   spacing: 12,
                   runSpacing: 12,
-                  children: AppThemeColor.values.map((color) {
-                    final isSelected = themeProvider.themeColor == color;
+                  children: AppThemeColor.values.map((colorEnum) {
+                    final previewColor = _colorForTheme(colorEnum);
+                    final isSelected = themeProvider.themeColor == colorEnum;
                     return GestureDetector(
                       onTap: () async {
                         FeedbackService.buttonTapFeedback();
-                        await themeProvider.setThemeColor(color);
+                        await themeProvider.setThemeColor(colorEnum);
+                        if (!context.mounted) return;
                         Navigator.pop(context);
                       },
                       child: AnimatedContainer(
@@ -380,16 +392,14 @@ class ThemeSettingsScreen extends StatelessWidget {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: _getColorFromTheme(color),
+                          color: previewColor,
                           shape: BoxShape.circle,
                           border: isSelected
                               ? Border.all(color: Colors.white, width: 3)
                               : null,
                           boxShadow: [
                             BoxShadow(
-                              color: _getColorFromTheme(
-                                color,
-                              ).withValues(alpha: 0.3),
+                              color: previewColor.withValues(alpha: 0.3),
                               spreadRadius: isSelected ? 3 : 1,
                               blurRadius: isSelected ? 8 : 4,
                               offset: const Offset(0, 2),
@@ -416,46 +426,46 @@ class ThemeSettingsScreen extends StatelessWidget {
     );
   }
 
-  String _getThemeModeTitle(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.light:
-        return 'Aydınlık Mod';
-      case AppThemeMode.dark:
-        return 'Karanlık Mod';
-      case AppThemeMode.system:
-        return 'Sistem Ayarı';
-    }
-  }
-
-  String _getThemeModeDescription(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.light:
-        return 'Her zaman aydınlık tema kullanır';
-      case AppThemeMode.dark:
-        return 'Her zaman karanlık tema kullanır';
-      case AppThemeMode.system:
-        return 'Cihaz ayarlarını takip eder';
-    }
-  }
-
-  Color _getColorFromTheme(AppThemeColor themeColor) {
-    switch (themeColor) {
+  String _getLocalizedColorName(AppLocalizations loc, AppThemeColor color) {
+    switch (color) {
       case AppThemeColor.blue:
-        return Colors.blue;
+        return loc.themeColorBlue;
       case AppThemeColor.green:
-        return Colors.green;
+        return loc.themeColorGreen;
       case AppThemeColor.purple:
-        return Colors.purple;
+        return loc.themeColorPurple;
       case AppThemeColor.orange:
-        return Colors.orange;
+        return loc.themeColorOrange;
       case AppThemeColor.pink:
-        return Colors.pink;
+        return loc.themeColorPink;
       case AppThemeColor.teal:
-        return Colors.teal;
+        return loc.themeColorTeal;
       case AppThemeColor.indigo:
-        return Colors.indigo;
+        return loc.themeColorIndigo;
       case AppThemeColor.red:
-        return Colors.red;
+        return loc.themeColorRed;
+    }
+  }
+
+  String _getLocalizedThemeModeName(AppLocalizations loc, AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.light:
+        return loc.themeModeLight;
+      case AppThemeMode.dark:
+        return loc.themeModeDark;
+      case AppThemeMode.system:
+        return loc.themeModeSystem;
+    }
+  }
+
+  String _getThemeModeDescription(AppLocalizations loc, AppThemeMode mode) {
+    switch (mode) {
+      case AppThemeMode.light:
+        return loc.themeModeLightDescription;
+      case AppThemeMode.dark:
+        return loc.themeModeDarkDescription;
+      case AppThemeMode.system:
+        return loc.themeModeSystemDescription;
     }
   }
 }

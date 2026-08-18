@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../l10n/app_localizations.dart';
+import '../services/feedback_service.dart';
 import '../services/history_service.dart';
 import '../services/qr_action_service.dart';
 
@@ -14,7 +16,7 @@ class BarcodeTypes {
     BarcodeFormat.dataMatrix,
     BarcodeFormat.aztec,
     BarcodeFormat.pdf417,
-    BarcodeFormat.itf,
+    BarcodeFormat.itf14,
     BarcodeFormat.codabar,
   ];
 
@@ -38,12 +40,12 @@ class BarcodeTypes {
         return 'Aztec';
       case BarcodeFormat.pdf417:
         return 'PDF 417';
-      case BarcodeFormat.itf:
+      case BarcodeFormat.itf14:
         return 'ITF';
       case BarcodeFormat.codabar:
         return 'Codabar';
       default:
-        return 'Bilinmeyen Format';
+        return 'Unknown';
     }
   }
 
@@ -64,7 +66,7 @@ class BarcodeTypes {
         return Icons.center_focus_strong;
       case BarcodeFormat.pdf417:
         return Icons.document_scanner;
-      case BarcodeFormat.itf:
+      case BarcodeFormat.itf14:
       case BarcodeFormat.codabar:
         return Icons.all_inclusive;
       default:
@@ -81,13 +83,13 @@ class AdvancedBarcodeScanner extends StatefulWidget {
 }
 
 class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
-  MobileScannerController cameraController = MobileScannerController();
+  late MobileScannerController _cameraController;
   bool _screenOpened = false;
   bool _isFlashOn = false;
   bool _isDetectionActive = true;
   bool _isContinuousMode = false;
-  List<BarcodeFormat> _selectedFormats = [BarcodeFormat.qrCode];
-  BarcodeFormat? _lastDetectedFormat;
+  late List<BarcodeFormat> _selectedFormats;
+  late BarcodeFormat _lastDetectedFormat;
   String? _lastDetectedData;
   DateTime? _lastDetectionTime;
   int _detectionCount = 0;
@@ -95,11 +97,13 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
   @override
   void initState() {
     super.initState();
+    _selectedFormats = [BarcodeFormat.qrCode];
+    _cameraController = MobileScannerController();
     _updateCameraConfiguration();
   }
 
   void _updateCameraConfiguration() {
-    cameraController = MobileScannerController(
+    _cameraController = MobileScannerController(
       formats: _selectedFormats,
       detectionSpeed: DetectionSpeed.normal,
       facing: CameraFacing.back,
@@ -112,27 +116,28 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Gelişmiş Barkod Tarayıcı'),
-        backgroundColor: Colors.black.withValues(alpha: 0.5),
+        title: Text(AppLocalizations.of(context)!.advancedScannerTitle),
+        backgroundColor: Colors.black.withValues(alpha: 0.95),
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           // Format seçici
           IconButton(
             icon: const Icon(Icons.tune),
             onPressed: _showFormatSelector,
-            tooltip: 'Format Seçenekleri',
+            tooltip: AppLocalizations.of(context)!.advancedFormatOptions,
           ),
           // Flash açma/kapama
           IconButton(
             icon: Icon(_isFlashOn ? Icons.flash_on : Icons.flash_off),
             onPressed: _toggleFlash,
-            tooltip: 'Flaş',
+            tooltip: AppLocalizations.of(context)!.batchFlashTooltip,
           ),
           // Kamera değiştirme
           IconButton(
             icon: const Icon(Icons.flip_camera_ios),
             onPressed: _switchCamera,
-            tooltip: 'Kamera Değiştir',
+            tooltip: AppLocalizations.of(context)!.batchSwitchCameraTooltip,
           ),
         ],
       ),
@@ -140,7 +145,7 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
         children: [
           // Scanner view
           MobileScanner(
-            controller: cameraController,
+            controller: _cameraController,
             onDetect: _onBarcodeDetect,
           ),
 
@@ -169,6 +174,8 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
   }
 
   Widget _buildBottomPanel() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Positioned(
       bottom: 0,
       left: 0,
@@ -176,7 +183,7 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.8),
+          color: colorScheme.surface.withValues(alpha: isDark ? 0.98 : 0.97),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
@@ -190,7 +197,7 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
+                  color: colorScheme.primary.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -199,29 +206,31 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
                     Row(
                       children: [
                         Icon(
-                          BarcodeTypes.getBarcodeTypeIcon(_lastDetectedFormat!),
-                          color: Colors.green,
+                          BarcodeTypes.getBarcodeTypeIcon(_lastDetectedFormat),
+                          color: colorScheme.primary,
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          BarcodeTypes.getBarcodeTypeName(_lastDetectedFormat!),
-                          style: const TextStyle(
-                            color: Colors.green,
+                          BarcodeTypes.getBarcodeTypeName(_lastDetectedFormat),
+                          style: TextStyle(
+                            color: colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const Spacer(),
                         Text(
-                          'Tespit: $_detectionCount',
-                          style: const TextStyle(color: Colors.green),
+                          AppLocalizations.of(
+                            context,
+                          )!.advancedDetectionCount(_detectionCount),
+                          style: TextStyle(color: colorScheme.primary),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _lastDetectedData!,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: colorScheme.onSurface),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -245,11 +254,14 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
                           _isDetectionActive = value;
                         });
                       },
-                      activeThumbColor: Colors.green,
+                      activeThumbColor: colorScheme.primary,
                     ),
-                    const Text(
-                      'Tespit Aktif',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    Text(
+                      AppLocalizations.of(context)!.advancedDetectionActive,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -264,11 +276,14 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
                           _isContinuousMode = value;
                         });
                       },
-                      activeThumbColor: Colors.blue,
+                      activeThumbColor: colorScheme.secondary,
                     ),
-                    const Text(
-                      'Sürekli Mod',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    Text(
+                      AppLocalizations.of(context)!.advancedContinuousMode,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -277,10 +292,14 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
                 if (_lastDetectedData != null)
                   ElevatedButton.icon(
                     onPressed: _showDetectionDetails,
-                    icon: const Icon(Icons.info),
-                    label: const Text('Detay'),
+                    icon: Icon(Icons.info, color: colorScheme.onPrimary),
+                    label: Text(
+                      AppLocalizations.of(context)!.advancedDetails,
+                      style: TextStyle(color: colorScheme.onPrimary),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                     ),
                   ),
               ],
@@ -292,12 +311,16 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.2),
+                color: colorScheme.secondary.withValues(alpha: 0.13),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'Aktif Formatlar: ${_selectedFormats.map((f) => BarcodeTypes.getBarcodeTypeName(f)).join(", ")}',
-                style: const TextStyle(color: Colors.blue, fontSize: 12),
+                AppLocalizations.of(context)!.advancedActiveFormats(
+                  _selectedFormats
+                      .map((f) => BarcodeTypes.getBarcodeTypeName(f))
+                      .join(', '),
+                ),
+                style: TextStyle(color: colorScheme.secondary, fontSize: 12),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -353,123 +376,159 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
   }
 
   void _provideFeedback() {
-    // TODO: Vibrasyon ve ses feedback'i eklenebilir
+    FeedbackService.scanSuccessFeedback();
   }
 
   void _toggleFlash() {
     setState(() {
       _isFlashOn = !_isFlashOn;
     });
-    cameraController.toggleTorch();
+    _cameraController.toggleTorch();
   }
 
   void _switchCamera() {
-    cameraController.switchCamera();
+    _cameraController.switchCamera();
   }
 
   void _showFormatSelector() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Text(
-                    'Barkod Formatları',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  TextButton(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.advancedBarcodeFormats,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedFormats = List.from(BarcodeTypes.allFormats);
+                        });
+                        _updateCameraConfiguration();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        AppLocalizations.of(context)!.advancedSelectAll,
+                        style: TextStyle(color: colorScheme.primary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 260,
+                child: ListView.builder(
+                  itemCount: BarcodeTypes.allFormats.length,
+                  itemBuilder: (context, index) {
+                    final format = BarcodeTypes.allFormats[index];
+                    final isSelected = _selectedFormats.contains(format);
+                    return CheckboxListTile(
+                      title: Text(
+                        BarcodeTypes.getBarcodeTypeName(format),
+                        style: TextStyle(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: _getFormatDescription(format, colorScheme),
+                      secondary: Icon(
+                        BarcodeTypes.getBarcodeTypeIcon(format),
+                        color: colorScheme.primary,
+                      ),
+                      value: isSelected,
+                      activeColor: colorScheme.primary,
+                      checkColor: isDark ? Colors.black : Colors.white,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedFormats.add(format);
+                          } else {
+                            _selectedFormats.remove(format);
+                          }
+                          if (_selectedFormats.isEmpty) {
+                            _selectedFormats.add(BarcodeFormat.qrCode);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                     onPressed: () {
-                      setState(() {
-                        _selectedFormats = List.from(BarcodeTypes.allFormats);
-                      });
                       _updateCameraConfiguration();
                       Navigator.pop(context);
                     },
-                    child: const Text('Tümünü Seç'),
+                    child: Text(AppLocalizations.of(context)!.advancedApply),
                   ),
-                ],
+                ),
               ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: BarcodeTypes.allFormats.length,
-                itemBuilder: (context, index) {
-                  final format = BarcodeTypes.allFormats[index];
-                  final isSelected = _selectedFormats.contains(format);
-
-                  return CheckboxListTile(
-                    title: Text(BarcodeTypes.getBarcodeTypeName(format)),
-                    subtitle: _getFormatDescription(format),
-                    secondary: Icon(BarcodeTypes.getBarcodeTypeIcon(format)),
-                    value: isSelected,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedFormats.add(format);
-                        } else {
-                          _selectedFormats.remove(format);
-                        }
-
-                        // En az bir format seçili olmalı
-                        if (_selectedFormats.isEmpty) {
-                          _selectedFormats.add(BarcodeFormat.qrCode);
-                        }
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: () {
-                  _updateCameraConfiguration();
-                  Navigator.pop(context);
-                },
-                child: const Text('Uygula'),
-              ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget? _getFormatDescription(BarcodeFormat format) {
+  Widget? _getFormatDescription(
+    BarcodeFormat format, [
+    ColorScheme? colorScheme,
+  ]) {
     String description;
     switch (format) {
       case BarcodeFormat.qrCode:
-        description = 'Yaygın kullanılan 2D kod';
+        description = AppLocalizations.of(context)!.advancedDescQrCode;
         break;
       case BarcodeFormat.ean13:
       case BarcodeFormat.ean8:
-        description = 'Ürün barkodları (Avrupa)';
+        description = AppLocalizations.of(context)!.advancedDescProductBarcode;
         break;
       case BarcodeFormat.code128:
-        description = 'Endüstriyel kullanım';
+        description = AppLocalizations.of(context)!.advancedDescIndustrial;
         break;
       default:
-        description = 'Özel amaçlı kullanım';
+        description = AppLocalizations.of(context)!.advancedDescSpecialPurpose;
     }
-
+    final cs = colorScheme ?? Theme.of(context).colorScheme;
     return Text(
       description,
-      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+      style: TextStyle(
+        fontSize: 12,
+        color: cs.onSurface.withValues(alpha: 0.7),
+      ),
     );
   }
 
@@ -481,33 +540,39 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(BarcodeTypes.getBarcodeTypeIcon(_lastDetectedFormat!)),
+            Icon(BarcodeTypes.getBarcodeTypeIcon(_lastDetectedFormat)),
             const SizedBox(width: 8),
-            Text(BarcodeTypes.getBarcodeTypeName(_lastDetectedFormat!)),
+            Text(BarcodeTypes.getBarcodeTypeName(_lastDetectedFormat)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Tespit Edilen Veri:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              AppLocalizations.of(context)!.advancedDetectedData,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             SelectableText(_lastDetectedData!),
             const SizedBox(height: 16),
-            Text('Tespit Sayısı: $_detectionCount'),
+            Text(
+              AppLocalizations.of(
+                context,
+              )!.advancedDetectionCountLabel(_detectionCount),
+            ),
             if (_lastDetectionTime != null)
               Text(
-                'Son Tespit: ${_lastDetectionTime!.toLocal().toString().split('.')[0]}',
+                AppLocalizations.of(context)!.advancedLastDetection(
+                  _lastDetectionTime!.toLocal().toString().split('.')[0],
+                ),
               ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
+            child: Text(AppLocalizations.of(context)!.commonClose),
           ),
           ElevatedButton(
             onPressed: () {
@@ -515,10 +580,10 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
               QRActionService.performAction(
                 context,
                 _lastDetectedData!,
-                BarcodeTypes.getBarcodeTypeName(_lastDetectedFormat!),
+                BarcodeTypes.getBarcodeTypeName(_lastDetectedFormat),
               );
             },
-            child: const Text('İşlem Yap'),
+            child: Text(AppLocalizations.of(context)!.advancedPerformAction),
           ),
         ],
       ),
@@ -527,7 +592,7 @@ class _AdvancedBarcodeScannerState extends State<AdvancedBarcodeScanner> {
 
   @override
   void dispose() {
-    cameraController.dispose();
+    _cameraController.dispose();
     super.dispose();
   }
 }

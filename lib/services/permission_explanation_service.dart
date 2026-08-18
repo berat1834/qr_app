@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../l10n/app_localizations.dart';
 
 /// İzin şeffaflığı servisi - Kullanıcılara izinlerin neden gerekli olduğunu açıklar
 class PermissionExplanationService {
@@ -17,10 +18,12 @@ class PermissionExplanationService {
 
     // Eğer izin kalıcı olarak reddedilmişse, ayarlara yönlendir
     if (currentStatus.isPermanentlyDenied) {
+      if (!context.mounted) return false;
       return await _showPermanentlyDeniedDialog(context);
     }
 
     // İzin açıklama dialogunu göster
+    if (!context.mounted) return false;
     final bool shouldRequest = await _showCameraPermissionExplanation(context);
 
     if (!shouldRequest) {
@@ -33,6 +36,7 @@ class PermissionExplanationService {
     if (newStatus.isGranted) {
       return true;
     } else if (newStatus.isPermanentlyDenied) {
+      if (!context.mounted) return false;
       return await _showPermanentlyDeniedDialog(context);
     } else {
       // İzin reddedildi
@@ -51,12 +55,13 @@ class PermissionExplanationService {
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
+            final loc = AppLocalizations.of(context)!;
             return AlertDialog(
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.camera_alt, color: Colors.blue, size: 28),
-                  SizedBox(width: 12),
-                  Text('Kamera İzni'),
+                  const Icon(Icons.camera_alt, color: Colors.blue, size: 28),
+                  const SizedBox(width: 12),
+                  Text(loc.permCameraTitle),
                 ],
               ),
               content: Column(
@@ -81,7 +86,7 @@ class PermissionExplanationService {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Neden Kamera İzni Gerekli?',
+                              loc.permCameraWhyTitle,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blue.shade700,
@@ -90,12 +95,9 @@ class PermissionExplanationService {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          '🔍 QR kodları taramak için kamera erişimi gereklidir.\n'
-                          '📱 Uygulama sadece QR kod tanımak için kamerayı kullanır.\n'
-                          '🚫 Hiçbir fotoğraf veya video kaydedilmez.\n'
-                          '🔒 Kişisel gizliliğiniz korunur.',
-                          style: TextStyle(fontSize: 14, height: 1.4),
+                        Text(
+                          loc.permCameraWhyContent,
+                          style: const TextStyle(fontSize: 14, height: 1.4),
                         ),
                       ],
                     ),
@@ -116,10 +118,10 @@ class PermissionExplanationService {
                           size: 20,
                         ),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Verileriniz güvendedir',
-                            style: TextStyle(
+                            loc.permCameraDataSafe,
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
@@ -135,7 +137,7 @@ class PermissionExplanationService {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Bu izni istediğiniz zaman cihaz ayarlarından geri alabilirsiniz.',
+                          loc.permCameraSettingsNote,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -150,7 +152,7 @@ class PermissionExplanationService {
                 TextButton.icon(
                   onPressed: () => Navigator.of(context).pop(false),
                   icon: const Icon(Icons.cancel),
-                  label: const Text('İzin Verme'),
+                  label: Text(loc.permDecline),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[600],
                   ),
@@ -158,7 +160,7 @@ class PermissionExplanationService {
                 ElevatedButton.icon(
                   onPressed: () => Navigator.of(context).pop(true),
                   icon: const Icon(Icons.camera_alt),
-                  label: const Text('İzin Ver'),
+                  label: Text(loc.permGrant),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -177,12 +179,13 @@ class PermissionExplanationService {
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
+            final loc = AppLocalizations.of(context)!;
             return AlertDialog(
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.settings, color: Colors.orange, size: 28),
-                  SizedBox(width: 12),
-                  Text('İzin Gerekli'),
+                  const Icon(Icons.settings, color: Colors.orange, size: 28),
+                  const SizedBox(width: 12),
+                  Text(loc.permSettingsTitle),
                 ],
               ),
               content: Column(
@@ -207,7 +210,7 @@ class PermissionExplanationService {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Manuel İzin Ayarı Gerekli',
+                              loc.permManualRequired,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.orange.shade700,
@@ -216,13 +219,9 @@ class PermissionExplanationService {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'Kamera izni daha önce kalıcı olarak reddedilmiş.\n\n'
-                          'QR kod tarayabilmek için:\n'
-                          '1. Ayarlar > Uygulamalar\n'
-                          '2. QR App > İzinler\n'
-                          '3. Kamera izni açın',
-                          style: TextStyle(fontSize: 14, height: 1.4),
+                        Text(
+                          loc.permManualContent,
+                          style: const TextStyle(fontSize: 14, height: 1.4),
                         ),
                       ],
                     ),
@@ -233,7 +232,7 @@ class PermissionExplanationService {
                 TextButton.icon(
                   onPressed: () => Navigator.of(context).pop(false),
                   icon: const Icon(Icons.cancel),
-                  label: const Text('İptal'),
+                  label: Text(loc.permCancel),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[600],
                   ),
@@ -244,7 +243,7 @@ class PermissionExplanationService {
                     await openAppSettings();
                   },
                   icon: const Icon(Icons.settings),
-                  label: const Text('Ayarlara Git'),
+                  label: Text(loc.permGoToSettings),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
@@ -262,12 +261,13 @@ class PermissionExplanationService {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.block, color: Colors.red, size: 28),
-              SizedBox(width: 12),
-              Text('İzin Reddedildi'),
+              const Icon(Icons.block, color: Colors.red, size: 28),
+              const SizedBox(width: 12),
+              Text(loc.permDeniedTitle),
             ],
           ),
           content: Container(
@@ -285,7 +285,7 @@ class PermissionExplanationService {
                     Icon(Icons.info, color: Colors.red.shade700, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'QR Tarama Yapılamıyor',
+                      loc.permDeniedScanningImpossible,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.red.shade700,
@@ -294,10 +294,9 @@ class PermissionExplanationService {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Kamera izni olmadan QR kod tarama özelliğini kullanamıyoruz.\n\n'
-                  'İsterseniz daha sonra tekrar deneyebilir veya cihaz ayarlarından manuel olarak izin verebilirsiniz.',
-                  style: TextStyle(fontSize: 14, height: 1.4),
+                Text(
+                  loc.permDeniedContent,
+                  style: const TextStyle(fontSize: 14, height: 1.4),
                 ),
               ],
             ),
@@ -306,7 +305,7 @@ class PermissionExplanationService {
             TextButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.check),
-              label: const Text('Anladım'),
+              label: Text(loc.permUnderstood),
               style: TextButton.styleFrom(foregroundColor: Colors.red[600]),
             ),
           ],
@@ -323,12 +322,17 @@ class PermissionExplanationService {
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
+            final loc = AppLocalizations.of(context)!;
             return AlertDialog(
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.photo_library, color: Colors.purple, size: 28),
-                  SizedBox(width: 12),
-                  Text('Galeri Erişimi'),
+                  const Icon(
+                    Icons.photo_library,
+                    color: Colors.purple,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(loc.permGalleryTitle),
                 ],
               ),
               content: Column(
@@ -353,7 +357,7 @@ class PermissionExplanationService {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Neden Galeri Erişimi?',
+                              loc.permGalleryWhyTitle,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.purple.shade700,
@@ -362,11 +366,9 @@ class PermissionExplanationService {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          '📷 Galerinizden QR kod içeren resimleri seçebilmek için.\n'
-                          '🔍 Seçtiğiniz resimden QR kod okumak için.\n'
-                          '🔒 Sadece seçtiğiniz resim işlenir, diğer fotoğraflarınıza erişilmez.',
-                          style: TextStyle(fontSize: 14, height: 1.4),
+                        Text(
+                          loc.permGalleryWhyContent,
+                          style: const TextStyle(fontSize: 14, height: 1.4),
                         ),
                       ],
                     ),
@@ -377,7 +379,7 @@ class PermissionExplanationService {
                 TextButton.icon(
                   onPressed: () => Navigator.of(context).pop(false),
                   icon: const Icon(Icons.cancel),
-                  label: const Text('İptal'),
+                  label: Text(loc.permCancel),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[600],
                   ),
@@ -385,7 +387,7 @@ class PermissionExplanationService {
                 ElevatedButton.icon(
                   onPressed: () => Navigator.of(context).pop(true),
                   icon: const Icon(Icons.photo_library),
-                  label: const Text('Devam Et'),
+                  label: Text(loc.permContinue),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,

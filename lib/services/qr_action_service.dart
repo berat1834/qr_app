@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/qr_helpers.dart';
+import '../l10n/app_localizations.dart';
 import 'security_service.dart';
 
 class QRActionService {
@@ -56,7 +57,10 @@ class QRActionService {
   ) async {
     final wifiInfo = QRCodeUtils.parseWiFiQR(wifiData);
     if (wifiInfo == null) {
-      _showErrorDialog(context, 'WiFi bilgileri okunamadı');
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionWifiParseError,
+      );
       return;
     }
 
@@ -64,26 +68,35 @@ class QRActionService {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.wifi, color: Colors.blue),
-              SizedBox(width: 8),
-              Text('WiFi Ağı'),
+              const Icon(Icons.wifi, color: Colors.blue),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.qrActionWifiTitle),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoRow('Ağ Adı (SSID)', wifiInfo['ssid'] ?? ''),
-              _buildInfoRow('Şifre', wifiInfo['password'] ?? ''),
-              _buildInfoRow('Güvenlik', wifiInfo['security'] ?? ''),
+              _buildInfoRow(
+                AppLocalizations.of(context)!.qrActionWifiSsid,
+                wifiInfo['ssid'] ?? '',
+              ),
+              _buildInfoRow(
+                AppLocalizations.of(context)!.qrActionWifiPassword,
+                wifiInfo['password'] ?? '',
+              ),
+              _buildInfoRow(
+                AppLocalizations.of(context)!.qrActionWifiSecurity,
+                wifiInfo['security'] ?? '',
+              ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Kapat'),
+              child: Text(AppLocalizations.of(context)!.qrActionClose),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -91,7 +104,7 @@ class QRActionService {
                 _showWiFiInstructions(context, wifiInfo);
               },
               icon: const Icon(Icons.wifi),
-              label: const Text('Bağlan'),
+              label: Text(AppLocalizations.of(context)!.qrActionWifiConnect),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -112,16 +125,28 @@ class QRActionService {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('WiFi Bağlantısı'),
+          title: Text(
+            AppLocalizations.of(context)!.qrActionWifiInstructionsTitle,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('WiFi bağlantısı için:'),
+              Text(
+                AppLocalizations.of(context)!.qrActionWifiInstructionsContent,
+              ),
               const SizedBox(height: 16),
-              const Text('1. Ayarlar > WiFi\'ye gidin'),
-              Text('2. Ağı bulun: "${wifiInfo['ssid'] ?? ''}"'),
-              Text('3. Şifreyi girin: "${wifiInfo['password'] ?? ''}"'),
+              Text(AppLocalizations.of(context)!.qrActionWifiStep1),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.qrActionWifiStep2(wifiInfo['ssid'] ?? ''),
+              ),
+              Text(
+                AppLocalizations.of(
+                  context,
+                )!.qrActionWifiStep3(wifiInfo['password'] ?? ''),
+              ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(8),
@@ -129,14 +154,18 @@ class QRActionService {
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: SelectableText('Şifre: ${wifiInfo['password'] ?? ''}'),
+                child: SelectableText(
+                  AppLocalizations.of(
+                    context,
+                  )!.qrActionWifiPasswordLabel(wifiInfo['password'] ?? ''),
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
+              child: Text(AppLocalizations.of(context)!.commonOk),
             ),
           ],
         );
@@ -150,7 +179,7 @@ class QRActionService {
     String phoneData,
   ) async {
     try {
-      String phoneNumber = phoneData.startsWith('tel:')
+      final String phoneNumber = phoneData.startsWith('tel:')
           ? phoneData.substring(4)
           : phoneData;
 
@@ -158,10 +187,18 @@ class QRActionService {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        _showErrorDialog(context, 'Telefon uygulaması açılamadı');
+        if (!context.mounted) return;
+        _showErrorDialog(
+          context,
+          AppLocalizations.of(context)!.qrActionPhoneOpenError,
+        );
       }
     } catch (e) {
-      _showErrorDialog(context, 'Telefon açılırken hata oluştu: $e');
+      if (!context.mounted) return;
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionPhoneError('$e'),
+      );
     }
   }
 
@@ -172,10 +209,18 @@ class QRActionService {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        _showErrorDialog(context, 'E-mail uygulaması açılamadı');
+        if (!context.mounted) return;
+        _showErrorDialog(
+          context,
+          AppLocalizations.of(context)!.qrActionEmailOpenError,
+        );
       }
     } catch (e) {
-      _showErrorDialog(context, 'E-mail açılırken hata oluştu: $e');
+      if (!context.mounted) return;
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionEmailError('$e'),
+      );
     }
   }
 
@@ -186,10 +231,18 @@ class QRActionService {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        _showErrorDialog(context, 'SMS uygulaması açılamadı');
+        if (!context.mounted) return;
+        _showErrorDialog(
+          context,
+          AppLocalizations.of(context)!.qrActionSmsOpenError,
+        );
       }
     } catch (e) {
-      _showErrorDialog(context, 'SMS açılırken hata oluştu: $e');
+      if (!context.mounted) return;
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionSmsError('$e'),
+      );
     }
   }
 
@@ -201,7 +254,10 @@ class QRActionService {
     try {
       final location = QRCodeUtils.parseLocationQR(locationData);
       if (location == null) {
-        _showErrorDialog(context, 'Konum bilgileri okunamadı');
+        _showErrorDialog(
+          context,
+          AppLocalizations.of(context)!.qrActionLocationParseError,
+        );
         return;
       }
 
@@ -212,10 +268,18 @@ class QRActionService {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        _showErrorDialog(context, 'Harita uygulaması açılamadı');
+        if (!context.mounted) return;
+        _showErrorDialog(
+          context,
+          AppLocalizations.of(context)!.qrActionMapsOpenError,
+        );
       }
     } catch (e) {
-      _showErrorDialog(context, 'Harita açılırken hata oluştu: $e');
+      if (!context.mounted) return;
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionMapsError('$e'),
+      );
     }
   }
 
@@ -226,19 +290,23 @@ class QRActionService {
   ) async {
     final contactInfo = QRCodeUtils.parseVCardQR(vCardData);
     if (contactInfo == null) {
-      _showErrorDialog(context, 'Kartvizit bilgileri okunamadı');
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionContactParseError,
+      );
       return;
     }
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.contact_page, color: Colors.orange),
-              SizedBox(width: 8),
-              Text('Kartvizit'),
+              const Icon(Icons.contact_page, color: Colors.orange),
+              const SizedBox(width: 8),
+              Text(loc.qrActionContactTitle),
             ],
           ),
           content: Column(
@@ -246,21 +314,24 @@ class QRActionService {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (contactInfo['name'] != null)
-                _buildInfoRow('Ad', contactInfo['name']!),
+                _buildInfoRow(loc.qrActionContactName, contactInfo['name']!),
               if (contactInfo['phone'] != null)
-                _buildInfoRow('Telefon', contactInfo['phone']!),
+                _buildInfoRow(loc.qrActionContactPhone, contactInfo['phone']!),
               if (contactInfo['email'] != null)
-                _buildInfoRow('E-mail', contactInfo['email']!),
+                _buildInfoRow(loc.qrActionContactEmail, contactInfo['email']!),
               if (contactInfo['organization'] != null)
-                _buildInfoRow('Şirket', contactInfo['organization']!),
+                _buildInfoRow(
+                  loc.qrActionContactOrg,
+                  contactInfo['organization']!,
+                ),
               if (contactInfo['url'] != null)
-                _buildInfoRow('Web', contactInfo['url']!),
+                _buildInfoRow(loc.qrActionContactWeb, contactInfo['url']!),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Kapat'),
+              child: Text(loc.qrActionClose),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -268,7 +339,7 @@ class QRActionService {
                 _addToContacts(context, contactInfo);
               },
               icon: const Icon(Icons.contact_phone),
-              label: const Text('Rehbere Ekle'),
+              label: Text(loc.qrActionAddToContacts),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
@@ -310,18 +381,20 @@ class QRActionService {
         await launchUrl(uri);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Kişiler uygulaması açıldı. Manuel olarak ekleyebilirsiniz.',
+                AppLocalizations.of(context)!.qrActionContactsOpened,
               ),
             ),
           );
         }
       } else {
         // Alternatif: vCard verisini paylaş
+        if (!context.mounted) return;
         _showVCardDialog(context, vCardData);
       }
     } catch (e) {
+      if (!context.mounted) return;
       _showVCardDialog(context, contactInfo.toString());
     }
   }
@@ -331,12 +404,13 @@ class QRActionService {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Kişi Bilgileri'),
+          title: Text(loc.qrActionVcardTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Kişi bilgilerini manuel olarak kopyalayabilirsiniz:'),
+              Text(loc.qrActionVcardContent),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(8),
@@ -351,7 +425,7 @@ class QRActionService {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
+              child: Text(loc.commonOk),
             ),
           ],
         );
@@ -370,7 +444,7 @@ class QRActionService {
     String date = '';
     String description = '';
 
-    for (String line in lines) {
+    for (final String line in lines) {
       if (line.startsWith('SUMMARY:')) {
         title = line.substring(8);
       } else if (line.startsWith('DTSTART:')) {
@@ -383,28 +457,30 @@ class QRActionService {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.event, color: Colors.purple),
-              SizedBox(width: 8),
-              Text('Takvim Etkinliği'),
+              const Icon(Icons.event, color: Colors.purple),
+              const SizedBox(width: 8),
+              Text(loc.qrActionEventTitle),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (title.isNotEmpty) _buildInfoRow('Başlık', title),
-              if (date.isNotEmpty) _buildInfoRow('Tarih', date),
+              if (title.isNotEmpty)
+                _buildInfoRow(loc.qrActionEventSummary, title),
+              if (date.isNotEmpty) _buildInfoRow(loc.qrActionEventDate, date),
               if (description.isNotEmpty)
-                _buildInfoRow('Açıklama', description),
+                _buildInfoRow(loc.qrActionEventDesc, description),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Kapat'),
+              child: Text(loc.qrActionClose),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -412,7 +488,7 @@ class QRActionService {
                 _openCalendar(context, eventData);
               },
               icon: const Icon(Icons.event),
-              label: const Text('Takvime Ekle'),
+              label: Text(loc.qrActionAddToCalendar),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,
@@ -435,10 +511,18 @@ class QRActionService {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        _showErrorDialog(context, 'Takvim uygulaması açılamadı');
+        if (!context.mounted) return;
+        _showErrorDialog(
+          context,
+          AppLocalizations.of(context)!.qrActionCalendarOpenError,
+        );
       }
     } catch (e) {
-      _showErrorDialog(context, 'Takvim açılırken hata oluştu: $e');
+      if (!context.mounted) return;
+      _showErrorDialog(
+        context,
+        AppLocalizations.of(context)!.qrActionCalendarError('$e'),
+      );
     }
   }
 
@@ -449,9 +533,9 @@ class QRActionService {
   ) async {
     // MECARD parsing - Format: MECARD:N:Name;TEL:Phone;EMAIL:Email;;
     final parts = meCardData.substring(7).split(';'); // Remove "MECARD:"
-    Map<String, String> contactInfo = {};
+    final Map<String, String> contactInfo = {};
 
-    for (String part in parts) {
+    for (final String part in parts) {
       if (part.startsWith('N:')) {
         contactInfo['name'] = part.substring(2);
       } else if (part.startsWith('TEL:')) {
@@ -466,12 +550,13 @@ class QRActionService {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.contacts, color: Colors.teal),
-              SizedBox(width: 8),
-              Text('MeCard'),
+              const Icon(Icons.contacts, color: Colors.teal),
+              const SizedBox(width: 8),
+              Text(loc.qrActionMeCardTitle),
             ],
           ),
           content: Column(
@@ -479,19 +564,22 @@ class QRActionService {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (contactInfo['name'] != null)
-                _buildInfoRow('Ad', contactInfo['name']!),
+                _buildInfoRow(loc.qrActionContactName, contactInfo['name']!),
               if (contactInfo['phone'] != null)
-                _buildInfoRow('Telefon', contactInfo['phone']!),
+                _buildInfoRow(loc.qrActionContactPhone, contactInfo['phone']!),
               if (contactInfo['email'] != null)
-                _buildInfoRow('E-mail', contactInfo['email']!),
+                _buildInfoRow(loc.qrActionContactEmail, contactInfo['email']!),
               if (contactInfo['organization'] != null)
-                _buildInfoRow('Şirket', contactInfo['organization']!),
+                _buildInfoRow(
+                  loc.qrActionContactOrg,
+                  contactInfo['organization']!,
+                ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Kapat'),
+              child: Text(loc.qrActionClose),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -499,7 +587,7 @@ class QRActionService {
                 _addToContacts(context, contactInfo);
               },
               icon: const Icon(Icons.contact_phone),
-              label: const Text('Rehbere Ekle'),
+              label: Text(loc.qrActionAddToContacts),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
@@ -516,12 +604,13 @@ class QRActionService {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.text_fields, color: Colors.green),
-              SizedBox(width: 8),
-              Text('Metin'),
+              const Icon(Icons.text_fields, color: Colors.green),
+              const SizedBox(width: 8),
+              Text(loc.qrActionTextTitle),
             ],
           ),
           content: Container(
@@ -536,7 +625,7 @@ class QRActionService {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Kapat'),
+              child: Text(loc.qrActionClose),
             ),
           ],
         );
@@ -549,19 +638,20 @@ class QRActionService {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.error, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Hata'),
+              const Icon(Icons.error, color: Colors.red),
+              const SizedBox(width: 8),
+              Text(loc.qrActionErrorTitle),
             ],
           ),
           content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
+              child: Text(loc.commonOk),
             ),
           ],
         );

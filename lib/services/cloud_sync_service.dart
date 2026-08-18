@@ -449,11 +449,11 @@ class CloudSyncService {
           'qrData': 'https://example.com',
           'scanType': 'url',
           'timestamp': DateTime.now()
-              .subtract(Duration(hours: 1))
+              .subtract(const Duration(hours: 1))
               .toIso8601String(),
         },
-        createdAt: DateTime.now().subtract(Duration(hours: 1)),
-        updatedAt: DateTime.now().subtract(Duration(hours: 1)),
+        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+        updatedAt: DateTime.now().subtract(const Duration(hours: 1)),
         deviceId: _currentDeviceId ?? 'unknown',
       ),
     ];
@@ -469,11 +469,11 @@ class CloudSyncService {
           'itemType': 'product',
           'name': 'Samsung Galaxy S24',
           'addedAt': DateTime.now()
-              .subtract(Duration(days: 1))
+              .subtract(const Duration(days: 1))
               .toIso8601String(),
         },
-        createdAt: DateTime.now().subtract(Duration(days: 1)),
-        updatedAt: DateTime.now().subtract(Duration(days: 1)),
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 1)),
         deviceId: _currentDeviceId ?? 'unknown',
       ),
     ];

@@ -16,6 +16,11 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
+    val defaultAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
+    val admobAppId = (project.findProperty("ADMOB_APP_ID") as String?)
+        ?: System.getenv("ADMOB_APP_ID")
+        ?: defaultAdmobAppId
+
     namespace = "com.qrscanner.professional"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
@@ -23,6 +28,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -47,6 +53,7 @@ android {
         versionCode = 1
         versionName = "1.0.0"
         multiDexEnabled = true
+        manifestPlaceholders["ADMOB_APP_ID"] = admobAppId
     }
 
     buildTypes {
@@ -64,4 +71,15 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Firebase dosyası mevcut olduğunda plugin'leri otomatik aktif et.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.firebase-perf")
+    apply(plugin = "com.google.firebase.crashlytics")
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

@@ -1,0 +1,69 @@
+name: Flutter CI/CD
+
+# İş akışının ne zaman tetikleneceğini belirler.
+# - main branch'ine her push yapıldığında
+# - main branch'ine yönelik her pull request açıldığında
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    # İş akışının çalışacağı sanal makine
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Adım: Proje kodunu sanal makineye indirir
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Adım: Android imzalama için gerekli olan Java'yı kurar
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. Adım: Flutter SDK'sını kurar
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # Projenizin kullandığı Flutter kanalını yazın
+
+      # 4. Adım: Proje bağımlılıklarını yükler
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 5. Adım: Statik kod analizi yapar (kod kalitesi kontrolü)
+      - name: Analyze project source
+        run: flutter analyze
+
+      # 6. Adım: Tüm testleri çalıştırır
+      - name: Run tests
+        run: flutter test
+
+      # 7. Adım: APK'yı imzalamak için keystore ve key.properties dosyalarını oluşturur
+      # Bu adım sadece main branch'ine push yapıldığında çalışır ve GitHub Secrets kullanır.
+      - name: Setup Keystore for Signing
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=app/upload-keystore.jks" > android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+
+      # 8. Adım: İmzalı release APK oluşturur
+      - name: Build Release APK
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: flutter build apk --release
+
+      # 9. Adım: Oluşturulan APK'yı indirilebilir bir artifact olarak kaydeder
+      - name: Upload APK artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

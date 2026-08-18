@@ -1,3 +1,6 @@
+# Android release signing dosyaları (Play Store için gizli tutulmalı)
+key.properties
+*.jks
 # Miscellaneous
 *.class
 *.log

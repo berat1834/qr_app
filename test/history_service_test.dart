@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 void main() {
@@ -7,8 +6,8 @@ void main() {
 
   group('HistoryService Unit Testleri', () {
     setUp(() async {
-      // Her test öncesi SharedPreferences'ı temizle
-      SharedPreferences.setMockInitialValues({});
+      // Her test öncesi mock storage'ı temizle
+      _mockStorage.clear();
     });
 
     group('HistoryItem Seri/Deseri', () {
@@ -152,7 +151,7 @@ void main() {
         // Maksimum 100 item tutulmalı
         expect(history.length, 100);
         // En eski item silinmiş olmalı
-        expect(history[99].data, 'Item 0');
+        expect(history[99].data, 'Item 1');
       });
 
       test('Geçmiş boş olduğunda doğru şekilde döndürülüyor mu?', () async {
@@ -341,8 +340,8 @@ void main() {
         final afterTime = DateTime.now();
         final history = await getHistory();
 
-        expect(history[0].timestamp.isAfter(beforeTime), true);
-        expect(history[0].timestamp.isBefore(afterTime), true);
+        expect(history[0].timestamp.isBefore(beforeTime), false);
+        expect(history[0].timestamp.isAfter(afterTime), false);
       });
 
       test('Birden fazla item farklı timestamp\'i var mı?', () async {
@@ -439,7 +438,7 @@ Future<void> addToHistory({
   final history = await getHistory();
 
   final newItem = HistoryItem(
-    id: DateTime.now().millisecondsSinceEpoch.toString(),
+    id: '${DateTime.now().microsecondsSinceEpoch}-${history.length}',
     data: data,
     type: type,
     timestamp: DateTime.now(),

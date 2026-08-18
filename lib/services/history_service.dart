@@ -49,9 +49,9 @@ class HistoryService {
 
     history.insert(0, newItem); // En yeniler başta
 
-    // Maksimum 100 item tut
-    if (history.length > 100) {
-      history.removeRange(100, history.length);
+    // Maksimum 1000 item tut (Kullanıcı verisi kaybını en aza indirir)
+    if (history.length > 1000) {
+      history.removeRange(1000, history.length);
     }
 
     await _saveHistory(history);

@@ -1,112 +1,92 @@
-# 📱 QR Kod Uygulaması
+<div align="center">
+  <img src="assets/icon/icon.png" alt="Logo" width="120" height="120">
 
-Flutter ile geliştirilmiş, kapsamlı test coverage'a sahip profesyonel QR kod okuyucu ve oluşturucu uygulama.
+  # ScanMaster QR 🚀
 
-## ✨ Özellikler
+  **Hepsi Bir Arada, Hızlı ve Profesyonel QR Kod Çözümü**
 
-- 📷 **QR Kod Tarama** - Gelişmiş tarayıcı ile her türlü QR kod
-- ✏️ **QR Kod Oluşturma** - WiFi, URL, vCard, Konum ve daha fazlası
-- 📚 **Geçmiş Yönetimi** - Taranan ve oluşturulan kodların takibi
-- ⭐ **Favoriler** - Sık kullanılan QR kodları kaydetme
-- 🎨 **Özelleştirilebilir Temalar** - Açık/Koyu mod + renk seçenekleri
-- 🔒 **Güvenlik Kontrolleri** - URL güvenlik analizi
-- 📤 **Paylaşım Özellikleri** - WhatsApp, Telegram, E-mail, SMS
+  [![Flutter](https://img.shields.io/badge/Flutter-3.9.2-02569B?logo=flutter)](https://flutter.dev)
+  [![Firebase](https://img.shields.io/badge/Firebase-Integrated-FFCA28?logo=firebase)](https://firebase.google.com)
+  [![Provider](https://img.shields.io/badge/State_Management-Provider-blue?logo=dart)](https://pub.dev/packages/provider)
+  [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+</div>
 
-## 🧪 Test Coverage
+<br>
 
-**Toplam Test Sayısı:** 132 ✅
+**ScanMaster QR**, modern tasarımı ve gelişmiş özellikleriyle hem günlük kullanıcılar hem de profesyoneller için geliştirilmiş kapsamlı bir QR kod okuyucu ve oluşturucu mobil uygulamasıdır. Flutter ile geliştirilmiş olup iOS ve Android platformlarında yüksek performansla çalışır.
 
-- Widget Tests: 8
-- Unit Tests: 18
-- Integration Tests: 12
-- Service Tests: 94
+---
 
-**Test Kuralları:** Detaylı bilgi için [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) dosyasına bakın.
+## 📸 Ekran Görüntüleri
 
-## 📁 Proje Yapısı
+<div align="center">
+  <img src="docs/screenshots/1.png" width="200" alt="Ana Ekran" style="margin: 10px;">
+  <img src="docs/screenshots/2.png" width="200" alt="QR Oluşturma" style="margin: 10px;">
+  <img src="docs/screenshots/3.png" width="200" alt="Tarayıcı" style="margin: 10px;">
+  <img src="docs/screenshots/4.png" width="200" alt="Ayarlar" style="margin: 10px;">
+</div>
 
-```
-lib/
-├── main.dart                    # Uygulama giriş noktası
-├── screens/                     # Ekranlar (9 aktif ekran)
-│   ├── simple_home_screen.dart
-│   ├── enhanced_qr_scanner_screen.dart
-│   ├── enhanced_qr_generator_screen.dart
-│   ├── history_screen.dart
-│   ├── favorites_screen.dart
-│   └── ...
-├── services/                    # İş mantığı ve servisler
-│   ├── history_service.dart
-│   ├── favorites_service.dart
-│   ├── security_service.dart
-│   └── ...
-├── providers/                   # State yönetimi (Provider)
-│   └── enhanced_theme_provider.dart
-└── utils/                       # Yardımcı fonksiyonlar
-    └── qr_helpers.dart          # QR parse/generate işlemleri
+---
 
-test/
-├── widget_test.dart
-├── unit_test.dart
-├── integration_test.dart
-└── *_service_test.dart
-```
+## ✨ Öne Çıkan Özellikler
 
-## 🚀 Başlangıç
+*   **📱 Hızlı ve Güvenilir Tarama:** Kamera üzerinden anında QR kodları tarama ve otomatik odaklama.
+*   **🎨 Zengin QR Kod Oluşturma:** URL, Metin, E-posta, Telefon, SMS, WiFi, Konum ve Kartvizit tiplerinde özelleştirilebilir QR kodları.
+*   **🌙 Dinamik Tema Desteği:** Sistem ayarlarıyla uyumlu Karanlık (Dark) ve Aydınlık (Light) tema seçeneği.
+*   **☁️ Bulut Senkronizasyonu & Firebase:** Kullanıcı oturumu (Google Sign-In), verilerin güvenli yedeklenmesi ve senkronizasyonu.
+*   **📊 İstatistik ve Analizler:** Okunan ve oluşturulan kodların geçmişi, uygulama kullanım istatistikleri.
+*   **💎 Premium Özellikler:** Uygulama içi satın alma (In-App Purchases) entegrasyonu ile reklamsız deneyim ve ekstra özelliklerin kilidini açma.
+*   **🔔 Akıllı Bildirimler:** Çevrimdışı çalışan lokal bildirimler ve hatırlatıcılar.
+*   **📉 Analitik ve Crashlytics:** Firebase Analytics ve Crashlytics ile gelişmiş hata takibi ve performans ölçümü.
 
-### Gereksinimler
+## 🛠️ Kullanılan Teknolojiler & Mimari
 
-- Flutter SDK (≥3.0.0)
-- Dart SDK (≥3.0.0)
+*   **Framework:** [Flutter](https://flutter.dev/)
+*   **State Management:** `Provider` mimarisi
+*   **Backend & Veritabanı:** Firebase (Auth, Analytics, Crashlytics, Performance)
+*   **Tarama Motoru:** `mobile_scanner` & `qr_flutter`
+*   **Para Kazanma & Reklam:** `in_app_purchase` (Premium abonelikler) & `google_mobile_ads`
+*   **Animasyonlar:** Lottie entegrasyonu
+*   **Yerel Bildirimler:** `flutter_local_notifications`
+
+## 🚀 Başlarken
+
+Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyin:
+
+### Ön Gereksinimler
+*   [Flutter SDK](https://docs.flutter.dev/get-started/install) (sürüm ^3.9.2 veya üstü)
+*   [Android Studio](https://developer.android.com/studio) / [VS Code](https://code.visualstudio.com/)
+*   Firebase projesi oluşturulmuş ve `google-services.json` (Android) / `GoogleService-Info.plist` (iOS) dosyaları projeye eklenmiş olmalıdır.
 
 ### Kurulum
 
+1. Repoyu klonlayın:
 ```bash
-# Bağımlılıkları yükle
-flutter pub get
-
-# Uygulamayı çalıştır
-flutter run
-
-# Testleri çalıştır
-flutter test
+git clone https://github.com/berat1834/qr_app.git
 ```
 
-## 🧪 Test Disiplini
+2. Proje dizinine gidin:
+```bash
+cd qr_app
+```
 
-Bu projede **zorunlu test yazma kuralları** uygulanır:
+3. Bağımlılıkları yükleyin:
+```bash
+flutter pub get
+```
 
-✅ **KURAL 1:** Her service için unit test yazılmalı  
-✅ **KURAL 2:** Her ekran için smoke test yazılmalı
+4. Uygulamayı çalıştırın:
+```bash
+flutter run
+```
 
-Detaylar: [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)
+## 🤝 Katkıda Bulunma
 
-## 📚 Dokümantasyon
-
-- [Flutter Kavramları](docs/Flutter_Kavramlari.md)
-- [QR Kod Dersleri](docs/Flutter_QR_Kod_Dersleri.md)
-- [Kod Örnekleri](docs/Kod_Ornekleri.md)
-- [Test Kuralları](TESTING_GUIDELINES.md) ⭐
-- [Play Store Release + IAP Checklist](PLAY_STORE_RELEASE.md)
-
-## 🛠️ Kullanılan Teknolojiler
-
-- **Flutter** - UI Framework
-- **Provider** - State Management
-- **SharedPreferences** - Yerel veri saklama
-- **mobile_scanner** - QR kod tarama
-- **qr_flutter** - QR kod oluşturma
-- **share_plus** - İçerik paylaşımı
-- **url_launcher** - URL/Link açma
-
-## 📊 Kod Kalitesi
-
-- ✅ Refactor edilmiş temiz kod
-- ✅ Duplicate kod yok
-- ✅ 132 test (tümü geçiyor)
-- ✅ Modüler yapı
-- ✅ Dokümante edilmiş
+Bu proje açık kaynaklıdır ve katkılarınızı bekliyoruz. Bir sorun (issue) açabilir veya bir pull request (PR) gönderebilirsiniz.
 
 ## 📝 Lisans
 
-Bu proje MIT lisansı altındadır.
+Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına bakabilirsiniz.
+
+---
+*Geliştirici:* [Berat](https://github.com/berat1834) | *LinkedIn:* [Profilinizi Buraya Ekleyin](https://linkedin.com/in/)

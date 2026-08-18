@@ -20,7 +20,7 @@ class GalleryQRService {
           return null; // Kullanıcı izin vermedi
         }
       }
-      print('🖼️ Galeri QR tarama başlatıldı...');
+      debugPrint('🖼️ Galeri QR tarama başlatıldı...');
 
       // Galeriden resim seç
       final XFile? image = await _picker.pickImage(
@@ -29,25 +29,25 @@ class GalleryQRService {
       );
 
       if (image == null) {
-        print('❌ Kullanıcı resim seçmedi');
+        debugPrint('❌ Kullanıcı resim seçmedi');
         return null;
       }
 
-      print('✅ Resim seçildi: ${image.path}');
-      print('📁 Dosya boyutu: ${await File(image.path).length()} bytes');
+      debugPrint('✅ Resim seçildi: ${image.path}');
+      debugPrint('📁 Dosya boyutu: ${await File(image.path).length()} bytes');
 
       // MobileScanner ile analiz et
       final result = await _analyzeMobileScanner(image.path);
 
       if (result != null) {
-        print('🎉 QR kod başarıyla okundu: $result');
+        debugPrint('🎉 QR kod başarıyla okundu: $result');
       } else {
-        print('😞 QR kod okunamadı');
+        debugPrint('😞 QR kod okunamadı');
       }
 
       return result;
     } catch (e) {
-      print('💥 Galeri QR tarama hatası: $e');
+      debugPrint('💥 Galeri QR tarama hatası: $e');
       return null;
     }
   }
@@ -66,7 +66,7 @@ class GalleryQRService {
 
       return result;
     } catch (e) {
-      print('Kamera QR tarama hatası: $e');
+      debugPrint('Kamera QR tarama hatası: $e');
       return null;
     }
   }
@@ -75,21 +75,21 @@ class GalleryQRService {
   static Future<String?> _analyzeMobileScanner(String imagePath) async {
     MobileScannerController? controller;
     try {
-      print('🔍 Gerçek QR analizi başlatıldı...');
-      print('📂 Seçilen dosya: $imagePath');
+      debugPrint('🔍 Gerçek QR analizi başlatıldı...');
+      debugPrint('📂 Seçilen dosya: $imagePath');
 
       // Dosya mevcut mu kontrol edelim
       final file = File(imagePath);
-      final exists = await file.exists();
-      print('📋 Dosya mevcut: $exists');
+      final exists = file.existsSync();
+      debugPrint('📋 Dosya mevcut: $exists');
 
       if (!exists) {
-        print('❌ Dosya bulunamadı');
+        debugPrint('❌ Dosya bulunamadı');
         return null;
       }
 
       final size = await file.length();
-      print('📏 Dosya boyutu: $size bytes');
+      debugPrint('📏 Dosya boyutu: $size bytes');
 
       // MobileScannerController oluştur
       controller = MobileScannerController(
@@ -98,19 +98,19 @@ class GalleryQRService {
         torchEnabled: false,
       );
 
-      print('🤖 MobileScannerController oluşturuldu');
+      debugPrint('🤖 MobileScannerController oluşturuldu');
 
       // Resmi analiz et
       try {
         final BarcodeCapture? result = await controller.analyzeImage(imagePath);
-        print('✅ Analiz tamamlandı');
+        debugPrint('✅ Analiz tamamlandı');
 
         if (result != null && result.barcodes.isNotEmpty) {
-          print('📋 Bulunan kod sayısı: ${result.barcodes.length}');
+          debugPrint('📋 Bulunan kod sayısı: ${result.barcodes.length}');
 
           for (int i = 0; i < result.barcodes.length; i++) {
             final barcode = result.barcodes[i];
-            print(
+            debugPrint(
               '📋 Kod $i: Format=${barcode.format}, Value="${barcode.displayValue}", Raw="${barcode.rawValue}"',
             );
           }
@@ -120,28 +120,27 @@ class GalleryQRService {
               firstBarcode.displayValue ?? firstBarcode.rawValue ?? '';
 
           if (qrData.isNotEmpty) {
-            print('🎯 QR kod bulundu: $qrData');
+            debugPrint('🎯 QR kod bulundu: $qrData');
             return qrData;
           }
         }
       } catch (analyzeError) {
-        print('💥 Analiz hatası: $analyzeError');
-
+        debugPrint('💥 Analiz hatası: $analyzeError');
       }
 
-      print('❌ QR kod bulunamadı');
+      debugPrint('❌ QR kod bulunamadı');
       return null;
     } catch (e) {
-      print('💥 Genel QR analiz hatası: $e');
-      print('📋 Hata detayları: ${e.toString()}');
+      debugPrint('💥 Genel QR analiz hatası: $e');
+      debugPrint('📋 Hata detayları: ${e.toString()}');
       return null;
     } finally {
       // Controller'ı temizle
       try {
         await controller?.dispose();
-        print('🔒 Controller kapatıldı');
+        debugPrint('🔒 Controller kapatıldı');
       } catch (e) {
-        print('⚠️ Controller kapatma hatası: $e');
+        debugPrint('⚠️ Controller kapatma hatası: $e');
       }
     }
   }

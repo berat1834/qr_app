@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum PriceSource {
   trendyol,
@@ -119,10 +121,33 @@ class PriceComparisonResult {
 }
 
 class PriceComparisonService {
-  static const String _channelName = 'qr_app/price_comparison';
-  static const MethodChannel _methodChannel = MethodChannel(_channelName);
   static const Duration _cacheTimeout = Duration(hours: 1);
+  static const String _priceAlertsStorageKey = 'price_alerts_v1';
   static final Map<String, PriceComparisonResult> _cache = {};
+
+  static Future<List<Map<String, dynamic>>> _readStoredAlerts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawData = prefs.getString(_priceAlertsStorageKey);
+    if (rawData == null || rawData.isEmpty) {
+      return [];
+    }
+
+    final decoded = jsonDecode(rawData);
+    if (decoded is! List) {
+      return [];
+    }
+
+    return decoded
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  static Future<bool> _writeStoredAlerts(
+    List<Map<String, dynamic>> alerts,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.setString(_priceAlertsStorageKey, jsonEncode(alerts));
+  }
 
   /// Barkod ile fiyat karşılaştırması yap
   static Future<PriceComparisonResult> compareProductPrices(
@@ -347,7 +372,7 @@ class PriceComparisonService {
       final now = DateTime.now();
       return List.generate(30, (index) {
         final date = now.subtract(Duration(days: 29 - index));
-        final basePrice = 45999.0;
+        const basePrice = 45999.0;
         final variation = (index % 7) * 1000.0; // Haftalık fiyat dalgalanması
 
         return {
@@ -366,18 +391,27 @@ class PriceComparisonService {
   static Future<bool> createPriceAlert(
     String barcode,
     double targetPrice,
-    PriceSource? preferredSource,
-  ) async {
+    PriceSource? preferredSource, {
+    String? productName,
+    double? currentPrice,
+  }) async {
     try {
-      final result = await _methodChannel.invokeMethod('createPriceAlert', {
+      final alerts = await _readStoredAlerts();
+      alerts.removeWhere((alert) => alert['barcode'] == barcode);
+
+      alerts.add({
+        'id': '${barcode}_${DateTime.now().millisecondsSinceEpoch}',
         'barcode': barcode,
+        'productName': productName,
         'targetPrice': targetPrice,
+        'currentPrice': currentPrice,
         'preferredSource': preferredSource?.name,
         'createdAt': DateTime.now().toIso8601String(),
       });
-      return result == true;
-    } on PlatformException catch (e) {
-      debugPrint('Fiyat uyarısı oluşturma hatası: ${e.message}');
+
+      return _writeStoredAlerts(alerts);
+    } catch (e) {
+      debugPrint('Fiyat uyarısı oluşturma hatası: $e');
       return false;
     }
   }
@@ -385,23 +419,39 @@ class PriceComparisonService {
   /// Aktif fiyat uyarılarını getir
   static Future<List<Map<String, dynamic>>> getActivePriceAlerts() async {
     try {
-      final result = await _methodChannel.invokeMethod('getActivePriceAlerts');
-      return List<Map<String, dynamic>>.from(result ?? []);
-    } on PlatformException catch (e) {
-      debugPrint('Aktif uyarılar alma hatası: ${e.message}');
+      final alerts = await _readStoredAlerts();
+      alerts.sort(
+        (left, right) => (right['createdAt'] as String).compareTo(
+          left['createdAt'] as String,
+        ),
+      );
+      return alerts;
+    } catch (e) {
+      debugPrint('Aktif uyarılar alma hatası: $e');
       return [];
     }
+  }
+
+  static Future<Map<String, dynamic>?> getPriceAlertForBarcode(
+    String barcode,
+  ) async {
+    final alerts = await getActivePriceAlerts();
+    for (final alert in alerts) {
+      if (alert['barcode'] == barcode) {
+        return alert;
+      }
+    }
+    return null;
   }
 
   /// Fiyat uyarısını sil
   static Future<bool> deletePriceAlert(String alertId) async {
     try {
-      final result = await _methodChannel.invokeMethod('deletePriceAlert', {
-        'alertId': alertId,
-      });
-      return result == true;
-    } on PlatformException catch (e) {
-      debugPrint('Fiyat uyarısı silme hatası: ${e.message}');
+      final alerts = await _readStoredAlerts();
+      alerts.removeWhere((alert) => alert['id'] == alertId);
+      return _writeStoredAlerts(alerts);
+    } catch (e) {
+      debugPrint('Fiyat uyarısı silme hatası: $e');
       return false;
     }
   }
@@ -412,16 +462,24 @@ class PriceComparisonService {
     ProductInfo product,
   ) async {
     try {
-      final result = await _methodChannel.invokeMethod('addToFavorites', {
+      final prefs = await SharedPreferences.getInstance();
+      const key = 'price_comparison_favorites_v1';
+      final raw = prefs.getString(key);
+      final List<dynamic> list = raw != null && raw.isNotEmpty
+          ? jsonDecode(raw) as List
+          : [];
+      list.removeWhere((e) => (e as Map)['barcode'] == barcode);
+      list.add({
         'barcode': barcode,
         'productName': product.name,
         'productBrand': product.brand,
         'productCategory': product.category,
         'addedAt': DateTime.now().toIso8601String(),
       });
-      return result == true;
-    } on PlatformException catch (e) {
-      debugPrint('Favorilere ekleme hatası: ${e.message}');
+      await prefs.setString(key, jsonEncode(list));
+      return true;
+    } catch (e) {
+      debugPrint('Favorilere ekleme hatası: $e');
       return false;
     }
   }
@@ -429,10 +487,14 @@ class PriceComparisonService {
   /// Favori ürünleri getir
   static Future<List<Map<String, dynamic>>> getFavoriteProducts() async {
     try {
-      final result = await _methodChannel.invokeMethod('getFavoriteProducts');
-      return List<Map<String, dynamic>>.from(result ?? []);
-    } on PlatformException catch (e) {
-      debugPrint('Favoriler alma hatası: ${e.message}');
+      final prefs = await SharedPreferences.getInstance();
+      const key = 'price_comparison_favorites_v1';
+      final raw = prefs.getString(key);
+      if (raw == null || raw.isEmpty) return [];
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } catch (e) {
+      debugPrint('Favoriler alma hatası: $e');
       return [];
     }
   }
@@ -442,7 +504,13 @@ class PriceComparisonService {
     PriceComparisonResult result,
   ) async {
     try {
-      await _methodChannel.invokeMethod('savePriceComparisonHistory', {
+      final prefs = await SharedPreferences.getInstance();
+      const key = 'price_comparison_history_v1';
+      final raw = prefs.getString(key);
+      final List<dynamic> list = raw != null && raw.isNotEmpty
+          ? jsonDecode(raw) as List
+          : [];
+      list.insert(0, {
         'barcode': result.barcode,
         'productName': result.productInfo?.name,
         'productBrand': result.productInfo?.brand,
@@ -452,8 +520,11 @@ class PriceComparisonService {
         'priceCount': result.prices.length,
         'comparedAt': DateTime.now().toIso8601String(),
       });
-    } on PlatformException catch (e) {
-      debugPrint('Karşılaştırma geçmişi kaydetme hatası: ${e.message}');
+      // Geçmişi 50 kayıtla sınırla
+      final trimmed = list.take(50).toList();
+      await prefs.setString(key, jsonEncode(trimmed));
+    } catch (e) {
+      debugPrint('Karşılaştırma geçmişi kaydetme hatası: $e');
     }
   }
 

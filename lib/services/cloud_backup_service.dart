@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -8,26 +9,50 @@ import 'history_service.dart';
 
 class CloudBackupService {
   static const String _lastBackupKey = 'last_backup_timestamp';
+  static String? lastSignInError;
   // Google Drive Uygulama Verisi klasörüne erişim izni istiyoruz
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [drive.DriveApi.driveAppdataScope],
   );
 
+  static GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
+
+  static Future<GoogleSignInAccount?> trySilentSignIn() async {
+    if (_googleSignIn.currentUser != null) {
+      return _googleSignIn.currentUser;
+    }
+
+    try {
+      return await _googleSignIn.signInSilently();
+    } catch (e) {
+      debugPrint('Sessiz giriş hatası (önemsiz): $e');
+      return null;
+    }
+  }
+
   /// Kullanıcı oturum açmış mı kontrol et / Giriş yap
   static Future<GoogleSignInAccount?> signIn() async {
+    lastSignInError = null;
+
+    if (_googleSignIn.currentUser != null) {
+      return _googleSignIn.currentUser;
+    }
+
     try {
       // 1. Önce sessizce (kullanıcıya sormadan) giriş yapmayı dene
-      var account = await _googleSignIn.signInSilently();
+      final account = await _googleSignIn.signInSilently();
       if (account != null) return account;
     } catch (e) {
-      print('Sessiz giriş hatası (önemsiz): $e');
+      debugPrint('Sessiz giriş hatası (önemsiz): $e');
+      lastSignInError = e.toString();
     }
 
     try {
       // 2. Eğer sessiz giriş başarısızsa manuel giriş penceresini aç
       return await _googleSignIn.signIn();
     } catch (e) {
-      print('Giriş hatası: $e');
+      debugPrint('Giriş hatası: $e');
+      lastSignInError = e.toString();
       return null;
     }
   }
@@ -92,7 +117,7 @@ class CloudBackupService {
       await _saveLastBackupTimestamp(DateTime.now());
       return true;
     } catch (e) {
-      print('Yedekleme hatası: $e');
+      debugPrint('Yedekleme hatası: $e');
       return false;
     }
   }
@@ -159,7 +184,7 @@ class CloudBackupService {
 
       return true;
     } catch (e) {
-      print('Geri yükleme hatası: $e');
+      debugPrint('Geri yükleme hatası: $e');
       return false;
     }
   }

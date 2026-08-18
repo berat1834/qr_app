@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../l10n/app_localizations.dart';
 
 /// URL güvenlik kontrol servisi - Zararlı linkleri tespit eder
 class SecurityService {
@@ -57,6 +60,11 @@ class SecurityService {
     'wikipedia.org',
   ];
 
+  static const String _baseUrl = String.fromEnvironment(
+    'AI_API_URL',
+    defaultValue: 'http://10.0.2.2:8000/api/v1',
+  );
+
   /// URL güvenlik kontrolü yap
   static SecurityResult checkUrlSecurity(String url) {
     try {
@@ -100,7 +108,7 @@ class SecurityService {
       }
 
       // 4. Güvenli domain kontrolü (öncelikli - path kontrolünden önce)
-      for (String trustedDomain in _trustedDomains) {
+      for (final String trustedDomain in _trustedDomains) {
         if (domain == trustedDomain || domain.endsWith('.$trustedDomain')) {
           return SecurityResult(
             isSafe: true,
@@ -112,7 +120,7 @@ class SecurityService {
       }
 
       // 5. Zararlı desen kontrolü (domain + path)
-      for (String pattern in _dangerousPatterns) {
+      for (final String pattern in _dangerousPatterns) {
         if (fullUrl.contains(pattern) ||
             domain.contains(pattern) ||
             path.contains(pattern)) {
@@ -144,6 +152,65 @@ class SecurityService {
         details: 'Hatalı URL formatı: $e',
       );
     }
+  }
+
+  /// Yapay Zeka destekli asenkron URL güvenlik kontrolü (FastAPI)
+  static Future<SecurityResult> checkUrlSecurityAsync(String url) async {
+    // 1. Önce hızlı (offline) heuristik kontrolü yap
+    final localResult = checkUrlSecurity(url);
+
+    // Eğer lokal kontrol "Yüksek Risk" bulduysa doğrudan dön (API'yi yormaya gerek yok)
+    if (localResult.riskLevel == RiskLevel.high) {
+      return localResult;
+    }
+
+    // 2. Çevrimiçi Derin Analiz (FastAPI Backend)
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/analyze-url'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'url': url}),
+          )
+          .timeout(const Duration(seconds: 8)); // 8 saniye zaman aşımı
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final threatLevel = data['threat_level'] as String;
+        final riskFactors = List<String>.from(data['risk_factors'] ?? []);
+        final score = data['phishing_score'] ?? 100.0;
+
+        if (threatLevel == 'SAFE') {
+          return SecurityResult(
+            isSafe: true,
+            riskLevel: RiskLevel.safe,
+            message: 'Güvenli URL (AI Onaylı - Skor: $score)',
+            recommendation: SecurityAction.proceed,
+          );
+        } else if (threatLevel == 'SUSPICIOUS') {
+          return SecurityResult(
+            isSafe: false,
+            riskLevel: RiskLevel.medium,
+            message: 'Şüpheli URL tespit edildi! (AI Skor: $score)',
+            recommendation: SecurityAction.warn,
+            details: riskFactors.join('\n'),
+          );
+        } else {
+          return SecurityResult(
+            isSafe: false,
+            riskLevel: RiskLevel.high,
+            message: 'Zararlı URL tespit edildi! (AI Skor: $score)',
+            recommendation: SecurityAction.block,
+            details: riskFactors.join('\n'),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Siber Güvenlik API hatası: $e');
+      // API'ye ulaşılamazsa (örn: internet yoksa) lokal sonucu dön
+    }
+
+    return localResult;
   }
 
   /// Localhost veya özel ağ kontrolü
@@ -211,7 +278,7 @@ class SecurityService {
                     size: 24,
                   ),
                   const SizedBox(width: 8),
-                  const Text('Güvenlik Uyarısı'),
+                  Text(AppLocalizations.of(context)!.securityWarningTitle),
                 ],
               ),
               content: Column(
@@ -274,10 +341,10 @@ class SecurityService {
                     children: [
                       Icon(Icons.info, size: 16, color: Colors.blue[600]),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Bu uyarıyı dikkate alarak devam etmek istediğinizden emin misiniz?',
-                          style: TextStyle(fontSize: 12),
+                          AppLocalizations.of(context)!.securityWarningConfirm,
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ),
                     ],
@@ -288,7 +355,9 @@ class SecurityService {
                 TextButton.icon(
                   onPressed: () => Navigator.of(context).pop(false),
                   icon: const Icon(Icons.cancel),
-                  label: const Text('İptal'),
+                  label: Text(
+                    AppLocalizations.of(context)!.securityWarningCancel,
+                  ),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[600],
                   ),
@@ -298,8 +367,12 @@ class SecurityService {
                   icon: const Icon(Icons.open_in_browser),
                   label: Text(
                     securityResult.riskLevel == RiskLevel.high
-                        ? 'Risk Alarak Devam Et'
-                        : 'Dikkatli Devam Et',
+                        ? AppLocalizations.of(
+                            context,
+                          )!.securityWarningProceedHigh
+                        : AppLocalizations.of(
+                            context,
+                          )!.securityWarningProceedMedium,
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _getRiskColor(securityResult.riskLevel),
@@ -315,8 +388,8 @@ class SecurityService {
 
   /// Güvenli URL açma işlemi
   static Future<void> openUrlSafely(BuildContext context, String url) async {
-    // Güvenlik kontrolü yap
-    final securityResult = checkUrlSecurity(url);
+    // Asenkron (AI + Lokal) güvenlik kontrolü yap
+    final securityResult = await checkUrlSecurityAsync(url);
 
     bool shouldProceed = true;
 
@@ -336,12 +409,10 @@ class SecurityService {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text(
-                  'Site tarayıcıda açıldı. Güvenliğiniz için dikkatli olun.',
-                ),
+                content: Text(AppLocalizations.of(context)!.securitySiteOpened),
                 backgroundColor: Colors.green[600],
                 action: SnackBarAction(
-                  label: 'Tamam',
+                  label: AppLocalizations.of(context)!.commonOk,
                   textColor: Colors.white,
                   onPressed: () {},
                 ),
@@ -355,7 +426,9 @@ class SecurityService {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('URL açılamadı: $e'),
+              content: Text(
+                AppLocalizations.of(context)!.securityUrlOpenError('$e'),
+              ),
               backgroundColor: Colors.red[600],
             ),
           );

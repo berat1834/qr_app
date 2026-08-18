@@ -5,69 +5,132 @@ import 'package:qr_app/providers/enhanced_theme_provider.dart';
 import 'package:qr_app/providers/history_provider.dart';
 import 'package:qr_app/screens/settings_screen.dart';
 import 'package:qr_app/services/premium_access_service.dart';
+import 'package:qr_app/services/store_review_gateway.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:qr_app/l10n/app_localizations.dart';
+
+class _FakeStoreReviewGateway implements StoreReviewGateway {
+  bool called = false;
+  Object? error;
+
+  @override
+  Future<void> rateApp({required String androidPackageName}) async {
+    called = true;
+    if (error != null) {
+      throw error!;
+    }
+  }
+}
 
 void main() {
   group('SettingsScreen Widget Tests', () {
-    Widget createWidgetUnderTest() {
+    setUp(() {
+      PremiumAccessService.premiumNotifier.value = false;
+      PremiumAccessService.errorNotifier.value = null;
+    });
+
+    Widget createWidgetUnderTest({
+      Locale? locale,
+      StoreReviewGateway? storeReviewGateway,
+    }) {
       return MaterialApp(
+        locale: locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('tr'), Locale('en')],
         home: MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(create: (_) => HistoryProvider()),
           ],
-          child: const SettingsScreen(),
+          child: SettingsScreen(storeReviewGateway: storeReviewGateway),
         ),
       );
     }
 
-    testWidgets('Displays settings screen correctly', (
+    testWidgets('SettingsScreen başlık ve metinler TR ve EN locale ile doğru', (
       WidgetTester tester,
     ) async {
-      // Arrange & Act
-      await tester.pumpWidget(createWidgetUnderTest());
-
-      // Assert
-      expect(find.text('Ayarlar'), findsOneWidget);
-      expect(find.text('Uygulama Ayarları'), findsOneWidget);
-      expect(
-        find.text('Tema, yedekleme ve diğer tercihlerinizi yönetin'),
-        findsOneWidget,
+      // Türkçe
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('tr')),
       );
+      await tester.pumpAndSettle();
+      final locTr = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      );
+      expect(find.text(locTr!.settings), findsWidgets); // AppBar + body
+      expect(find.text(locTr.themeSettings), findsAtLeastNWidgets(1));
+
+      // İngilizce
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('en')),
+      );
+      await tester.pumpAndSettle();
+      final locEn = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      );
+      expect(find.text(locEn!.settings), findsWidgets);
+      expect(find.text(locEn.themeSettings), findsAtLeastNWidgets(1));
     });
 
     testWidgets('Theme settings link is present', (WidgetTester tester) async {
       // Arrange & Act
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('tr')),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
 
       // Assert
-      expect(find.text('Tema Ayarları'), findsOneWidget);
-      expect(
-        find.text('Renk, açık/koyu mod ve görünüm ayarları'),
-        findsOneWidget,
-      );
+      expect(find.text(loc.themeSettings), findsAtLeastNWidgets(1));
+      expect(find.text(loc.themeSettingsSubtitle), findsOneWidget);
     });
 
-    testWidgets('Cloud backup section is visible', (WidgetTester tester) async {
+    testWidgets('Help section is visible', (WidgetTester tester) async {
       // Arrange & Act
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('tr')),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
 
       // Assert
-      expect(find.text('Bulut Yedekleme'), findsOneWidget);
-      expect(
-        find.text(
-          'Premium senkronizasyon ile verilerinizi Google Drive üzerinden cihazlar arası güncel tutun.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(loc.helpFaq), findsAtLeastNWidgets(1));
+      expect(find.text(loc.helpFaqSubtitle), findsOneWidget);
     });
 
-    testWidgets('About section is visible', (WidgetTester tester) async {
+    testWidgets('Feedback section is visible', (WidgetTester tester) async {
       // Arrange & Act
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('tr')),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
+
+      await tester.scrollUntilVisible(
+        find.text(loc.feedback),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Uygulama Hakkında'), findsOneWidget);
-      expect(find.text('Gizlilik Politikası'), findsOneWidget);
+      expect(find.text(loc.feedback), findsOneWidget);
+      expect(find.text(loc.feedbackSubtitle), findsOneWidget);
     });
 
     testWidgets('Premium notifier is observable', (WidgetTester tester) async {
@@ -80,6 +143,103 @@ void main() {
 
       // Assert - UI should rebuild
       expect(PremiumAccessService.premiumNotifier.value, isTrue);
+    });
+
+    testWidgets('Premium upgrade subtitle is visible when not premium', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('tr')),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
+
+      await tester.scrollUntilVisible(
+        find.text(loc.settingsPremiumUpgradeSubtitle),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(loc.settingsPremiumUpgradeSubtitle), findsOneWidget);
+    });
+
+    testWidgets('Premium active subtitle is visible when premium', (
+      WidgetTester tester,
+    ) async {
+      PremiumAccessService.premiumNotifier.value = true;
+      await tester.pumpWidget(
+        createWidgetUnderTest(locale: const Locale('tr')),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
+
+      await tester.scrollUntilVisible(
+        find.text(loc.settingsPremiumActiveSubtitle),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(loc.settingsPremiumActiveSubtitle), findsOneWidget);
+    });
+
+    testWidgets('Rate app action calls injected review gateway', (
+      WidgetTester tester,
+    ) async {
+      final gateway = _FakeStoreReviewGateway();
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          locale: const Locale('tr'),
+          storeReviewGateway: gateway,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
+
+      await tester.tap(find.text(loc.rateApp));
+      await tester.pumpAndSettle();
+
+      expect(gateway.called, isTrue);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('Rate app failure shows localized snackbar', (
+      WidgetTester tester,
+    ) async {
+      final gateway = _FakeStoreReviewGateway()
+        ..error = StateError('store failed');
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          locale: const Locale('tr'),
+          storeReviewGateway: gateway,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final loc = AppLocalizations.of(
+        tester.element(find.byType(SettingsScreen)),
+      )!;
+
+      await tester.tap(find.text(loc.rateApp));
+      await tester.pumpAndSettle();
+
+      expect(gateway.called, isTrue);
+      expect(
+        find.text(loc.settingsStoreOpenFailed('Bad state: store failed')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Error notifier is initialized', (WidgetTester tester) async {

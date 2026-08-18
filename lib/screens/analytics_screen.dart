@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../l10n/app_localizations.dart';
 import '../models/history_item.dart';
 import '../services/history_service.dart';
 import '../services/favorites_service.dart';
@@ -222,11 +223,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('İstatistikler'),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(loc.homeActionAnalytics),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          surfaceTintColor: Colors.transparent,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -241,7 +244,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     // Tür dağılımı
     final typeDistribution = <String, int>{};
-    for (var item in _allItems) {
+    for (final item in _allItems) {
       typeDistribution[item.type] = (typeDistribution[item.type] ?? 0) + 1;
     }
 
@@ -256,7 +259,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ).subtract(Duration(days: i));
       last7Days[date] = 0;
     }
-    for (var item in _allItems) {
+    for (final item in _allItems) {
       final itemDate = DateTime(item.date.year, item.date.month, item.date.day);
       if (last7Days.containsKey(itemDate)) {
         last7Days[itemDate] = last7Days[itemDate]! + 1;
@@ -265,20 +268,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     // Kategori dağılımı
     final categoryDistribution = <String, int>{};
-    for (var item in _allItems) {
-      final category = item.category ?? 'Kategorisiz';
+    for (final item in _allItems) {
+      final category = item.category ?? loc.analyticsUncategorized;
       categoryDistribution[category] =
           (categoryDistribution[category] ?? 0) + 1;
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('İstatistikler'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(loc.homeActionAnalytics),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Yenile',
+            tooltip: loc.analyticsRefresh,
             onPressed: _loadData,
           ),
         ],
@@ -289,16 +293,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Genel İstatistikler
-            const Text(
-              'Genel İstatistikler',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              loc.analyticsOverview,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Toplam QR',
+                    loc.analyticsTotalQr,
                     totalCount.toString(),
                     Icons.qr_code_2,
                     Colors.blue,
@@ -307,7 +311,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildStatCard(
-                    'Favoriler',
+                    loc.homeActionFavorites,
                     favoriteCount.toString(),
                     Icons.favorite,
                     Colors.red,
@@ -320,7 +324,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Tarandı',
+                    loc.analyticsScanned,
                     scannedCount.toString(),
                     Icons.qr_code_scanner,
                     Colors.green,
@@ -329,7 +333,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildStatCard(
-                    'Oluşturuldu',
+                    loc.analyticsCreated,
                     createdCount.toString(),
                     Icons.create,
                     Colors.orange,
@@ -342,7 +346,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Arşivlendi',
+                    loc.analyticsArchived,
                     archivedCount.toString(),
                     Icons.archive,
                     Colors.purple,
@@ -351,7 +355,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildStatCard(
-                    'Aktif',
+                    loc.analyticsActive,
                     (totalCount - archivedCount).toString(),
                     Icons.check_circle,
                     Colors.teal,
@@ -362,16 +366,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 32),
 
             // Tür Dağılımı
-            const Text(
-              'Tür Dağılımı',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              loc.analyticsTypeDistribution,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (typeDistribution.isEmpty)
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('Henüz veri yok'),
+                  padding: const EdgeInsets.all(24),
+                  child: Text(loc.analyticsNoData),
                 ),
               )
             else ...[
@@ -414,16 +418,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 32),
 
             // Kategori Dağılımı
-            const Text(
-              'Kategori Dağılımı',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              loc.analyticsCategoryDistribution,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (categoryDistribution.isEmpty)
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text('Henüz veri yok'),
+                  padding: const EdgeInsets.all(24),
+                  child: Text(loc.analyticsNoData),
                 ),
               )
             else
@@ -443,9 +447,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 32),
 
             // Son 7 Gün Aktivitesi
-            const Text(
-              'Son 7 Gün Aktivitesi',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              loc.analyticsLast7Days,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             // Çubuk grafik
@@ -459,7 +463,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
                       maxY: _getMaxYForBarChart(last7Days),
-                      barTouchData: BarTouchData(enabled: true),
+                      barTouchData: const BarTouchData(enabled: true),
                       titlesData: FlTitlesData(
                         show: true,
                         bottomTitles: AxisTitles(

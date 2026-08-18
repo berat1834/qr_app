@@ -1,11 +1,17 @@
 /// QR Kod İşlemleri - Parser, Generator, Validator
 /// Tüm QR kod türlerinin oluşturulması, ayrıştırılması ve işlenmesi
+library;
 
 class QRCodeUtils {
   // ============= QR TÜRÜ TESPİTİ =============
 
   /// QR kod türünü tespit et
   static String detectQRType(String content) {
+    final normalized = content.trim().replaceAll(
+      RegExp(r'[\u0000-\u001F\s]+'),
+      '',
+    );
+
     if (content.startsWith('http://') || content.startsWith('https://')) {
       return 'URL';
     } else if (content.startsWith('WIFI:')) {
@@ -24,6 +30,8 @@ class QRCodeUtils {
       return 'Etkinlik';
     } else if (content.startsWith('MECARD:')) {
       return 'Kartvizit';
+    } else if (RegExp(r'^\d{8,14}$').hasMatch(normalized)) {
+      return 'Barkod';
     } else {
       return 'Metin';
     }
@@ -138,8 +146,9 @@ class QRCodeUtils {
     if (name.isNotEmpty) lines.add('FN:$name');
     if (phone != null && phone.isNotEmpty) lines.add('TEL:$phone');
     if (email != null && email.isNotEmpty) lines.add('EMAIL:$email');
-    if (organization != null && organization.isNotEmpty)
+    if (organization != null && organization.isNotEmpty) {
       lines.add('ORG:$organization');
+    }
     if (url != null && url.isNotEmpty) lines.add('URL:$url');
 
     lines.add('END:VCARD');
@@ -280,71 +289,6 @@ class QRCodeUtils {
   /// QR kod verisi geçerli mi kontrol et
   static bool isValidQRData(String data) {
     return data.trim().isNotEmpty;
-  }
-
-  // ============= AÇIKLAMALAR VE TANIMLAMAsı =============
-
-  /// QR kod türüne göre açıklama metni
-  static String getQRTypeDescription(String type) {
-    switch (type) {
-      case 'WiFi':
-        return 'WiFi ağ bilgileri (SSID, şifre, güvenlik türü)';
-      case 'URL':
-        return 'Web sitesi bağlantısı';
-      case 'Telefon':
-        return 'Telefon numarası';
-      case 'E-mail':
-        return 'E-mail adresi';
-      case 'SMS':
-        return 'SMS mesajı';
-      case 'Konum':
-        return 'Coğrafi konum (enlem/boylam)';
-      case 'Kartvizit':
-        return 'İletişim bilgileri (vCard)';
-      case 'Etkinlik':
-        return 'Takvim etkinliği (vEvent)';
-      case 'MeCard':
-        return 'İletişim bilgileri (MeCard)';
-      case 'Metin':
-      default:
-        return 'Düz metin içeriği';
-    }
-  }
-
-  /// İçeriği okunabilir formata çevir
-  static String getReadableContent(String content) {
-    final String type = detectQRType(content);
-
-    switch (type) {
-      case 'WiFi':
-        final wifi = parseWiFiQR(content);
-        if (wifi != null) {
-          return 'WiFi: ${wifi['ssid'] ?? 'Bilinmeyen Ağ'}';
-        }
-        break;
-      case 'Kartvizit':
-        final vcard = parseVCardQR(content);
-        if (vcard != null) {
-          return 'Kartvizit: ${vcard['fullName'] ?? vcard['name'] ?? 'İsimsiz'}';
-        }
-        break;
-      case 'Konum':
-        final location = parseLocationQR(content);
-        if (location != null) {
-          return 'Konum: ${location['latitude']}, ${location['longitude']}';
-        }
-        break;
-      case 'Telefon':
-        return 'Tel: ${content.replaceFirst('tel:', '')}';
-      case 'E-mail':
-        return 'E-mail: ${content.replaceFirst('mailto:', '').split('?').first}';
-      case 'SMS':
-        return 'SMS: ${content.replaceFirst('sms:', '').split('?').first}';
-      default:
-        return content.length > 50 ? '${content.substring(0, 50)}...' : content;
-    }
-
-    return content;
   }
 
   /// QR kod içeriğini kısalt (önizleme için)

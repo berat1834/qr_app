@@ -1,5 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:ui' as ui;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import '../l10n/app_localizations.dart';
 import '../services/history_service.dart';
 
 class CustomQRGeneratorScreen extends StatefulWidget {
@@ -67,18 +74,19 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Özelleştirme'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(AppLocalizations.of(context)!.customQrTitle),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: _shareCustomQR,
-            tooltip: 'Paylaş',
+            tooltip: AppLocalizations.of(context)!.customQrShareTooltip,
           ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: _saveCustomQR,
-            tooltip: 'Kaydet',
+            tooltip: AppLocalizations.of(context)!.customQrSaveTooltip,
           ),
         ],
       ),
@@ -137,12 +145,24 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
       length: 4,
       child: Column(
         children: [
-          const TabBar(
+          TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.palette), text: 'Renkler'),
-              Tab(icon: Icon(Icons.image), text: 'Logo'),
-              Tab(icon: Icon(Icons.tune), text: 'Stil'),
-              Tab(icon: Icon(Icons.settings), text: 'Ayarlar'),
+              Tab(
+                icon: const Icon(Icons.palette),
+                text: AppLocalizations.of(context)!.customQrTabColors,
+              ),
+              Tab(
+                icon: const Icon(Icons.image),
+                text: AppLocalizations.of(context)!.customQrTabLogo,
+              ),
+              Tab(
+                icon: const Icon(Icons.tune),
+                text: AppLocalizations.of(context)!.customQrTabStyle,
+              ),
+              Tab(
+                icon: const Icon(Icons.settings),
+                text: AppLocalizations.of(context)!.customQrTabSettings,
+              ),
             ],
             isScrollable: true,
           ),
@@ -167,9 +187,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Hazır Renkler',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.customQrPresetColors,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -192,7 +212,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
                   decoration: BoxDecoration(
                     color: preset['bg'],
                     border: Border.all(
-                      color: isSelected ? Colors.blue : Colors.grey.shade300,
+                      color: isSelected ? Colors.black : Colors.grey.shade300,
                       width: isSelected ? 3 : 1,
                     ),
                     borderRadius: BorderRadius.circular(8),
@@ -212,9 +232,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
             }).toList(),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Özel Renkler',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.customQrCustomColors,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Row(
@@ -223,7 +243,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('QR Rengi'),
+                    Text(AppLocalizations.of(context)!.customQrColorFg),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: () => _showColorPicker(true),
@@ -244,7 +264,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Arkaplan'),
+                    Text(AppLocalizations.of(context)!.customQrColorBg),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: () => _showColorPicker(false),
@@ -275,9 +295,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
         children: [
           Row(
             children: [
-              const Text(
-                'Logo Ekle',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.customQrAddLogo,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const Spacer(),
               Switch(
@@ -292,7 +312,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
           ),
           if (hasLogo) ...[
             const SizedBox(height: 16),
-            const Text('Logo Boyutu'),
+            Text(AppLocalizations.of(context)!.customQrLogoSize),
             Slider(
               value: logoSize,
               min: 20,
@@ -306,7 +326,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
               },
             ),
             const SizedBox(height: 16),
-            const Text('Logo Seçin'),
+            Text(AppLocalizations.of(context)!.customQrSelectLogo),
             const SizedBox(height: 12),
             Expanded(
               child: GridView.builder(
@@ -360,9 +380,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Köşe Yuvarlaklığı',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.customQrCornerRadius,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Slider(
             value: borderRadius,
@@ -377,9 +397,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
             },
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Hata Düzeltme Seviyesi',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.customQrErrorLevel,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<int>(
@@ -388,22 +408,22 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: QrErrorCorrectLevel.L,
-                child: Text('Düşük (L) - %7'),
+                child: Text(AppLocalizations.of(context)!.customQrErrorLow),
               ),
               DropdownMenuItem(
                 value: QrErrorCorrectLevel.M,
-                child: Text('Orta (M) - %15'),
+                child: Text(AppLocalizations.of(context)!.customQrErrorMid),
               ),
               DropdownMenuItem(
                 value: QrErrorCorrectLevel.Q,
-                child: Text('Yüksek (Q) - %25'),
+                child: Text(AppLocalizations.of(context)!.customQrErrorHigh),
               ),
               DropdownMenuItem(
                 value: QrErrorCorrectLevel.H,
-                child: Text('En Yüksek (H) - %30'),
+                child: Text(AppLocalizations.of(context)!.customQrErrorMax),
               ),
             ],
             onChanged: (value) {
@@ -429,7 +449,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
                     Icon(Icons.info, color: Colors.blue.shade700, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      'Hata Düzeltme',
+                      AppLocalizations.of(context)!.customQrErrorTitle,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blue.shade700,
@@ -438,9 +458,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Yüksek seviye, QR kodun daha fazla hasar alsa bile okunabilir olmasını sağlar, ancak daha karmaşık görünür.',
-                  style: TextStyle(fontSize: 12),
+                Text(
+                  AppLocalizations.of(context)!.customQrErrorDesc,
+                  style: const TextStyle(fontSize: 12),
                 ),
               ],
             ),
@@ -456,9 +476,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'QR Kod Bilgileri',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.customQrInfo,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Container(
@@ -471,63 +491,83 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Veri: ${widget.data}'),
-                const SizedBox(height: 8),
-                Text('Karakter Sayısı: ${widget.data.length}'),
+                Text(
+                  AppLocalizations.of(context)!.customQrInfoData(widget.data),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Hata Düzeltme: ${_getErrorCorrectionName(errorCorrectLevel)}',
+                  AppLocalizations.of(
+                    context,
+                  )!.customQrInfoCharCount(widget.data.length),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppLocalizations.of(context)!.customQrInfoErrorLevel(
+                    _getErrorCorrectionName(errorCorrectLevel),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Önceden Tanımlı Stiller',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.customQrPresets,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildPresetButton('Klasik', () {
-                setState(() {
-                  foregroundColor = Colors.black;
-                  backgroundColor = Colors.white;
-                  borderRadius = 0;
-                  hasLogo = false;
-                  errorCorrectLevel = QrErrorCorrectLevel.M;
-                });
-              }),
-              _buildPresetButton('Modern', () {
-                setState(() {
-                  foregroundColor = Colors.blue.shade800;
-                  backgroundColor = Colors.blue.shade50;
-                  borderRadius = 16;
-                  hasLogo = false;
-                  errorCorrectLevel = QrErrorCorrectLevel.H;
-                });
-              }),
-              _buildPresetButton('Minimal', () {
-                setState(() {
-                  foregroundColor = Colors.grey.shade800;
-                  backgroundColor = Colors.white;
-                  borderRadius = 8;
-                  hasLogo = false;
-                  errorCorrectLevel = QrErrorCorrectLevel.L;
-                });
-              }),
-              _buildPresetButton('Premium', () {
-                setState(() {
-                  foregroundColor = Colors.deepPurple;
-                  backgroundColor = Colors.deepPurple.shade50;
-                  borderRadius = 20;
-                  hasLogo = true;
-                  selectedLogo = 'verified';
-                  errorCorrectLevel = QrErrorCorrectLevel.H;
-                });
-              }),
+              _buildPresetButton(
+                AppLocalizations.of(context)!.customQrPresetClassic,
+                () {
+                  setState(() {
+                    foregroundColor = Colors.black;
+                    backgroundColor = Colors.white;
+                    borderRadius = 0;
+                    hasLogo = false;
+                    errorCorrectLevel = QrErrorCorrectLevel.M;
+                  });
+                },
+              ),
+              _buildPresetButton(
+                AppLocalizations.of(context)!.customQrPresetModern,
+                () {
+                  setState(() {
+                    foregroundColor = Colors.blue.shade800;
+                    backgroundColor = Colors.blue.shade50;
+                    borderRadius = 16;
+                    hasLogo = false;
+                    errorCorrectLevel = QrErrorCorrectLevel.H;
+                  });
+                },
+              ),
+              _buildPresetButton(
+                AppLocalizations.of(context)!.customQrPresetMinimal,
+                () {
+                  setState(() {
+                    foregroundColor = Colors.grey.shade800;
+                    backgroundColor = Colors.white;
+                    borderRadius = 8;
+                    hasLogo = false;
+                    errorCorrectLevel = QrErrorCorrectLevel.L;
+                  });
+                },
+              ),
+              _buildPresetButton(
+                AppLocalizations.of(context)!.customQrPresetPremium,
+                () {
+                  setState(() {
+                    foregroundColor = Colors.deepPurple;
+                    backgroundColor = Colors.deepPurple.shade50;
+                    borderRadius = 20;
+                    hasLogo = true;
+                    selectedLogo = 'verified';
+                    errorCorrectLevel = QrErrorCorrectLevel.H;
+                  });
+                },
+              ),
             ],
           ),
         ],
@@ -550,7 +590,11 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(isForeground ? 'QR Kod Rengi' : 'Arkaplan Rengi'),
+          title: Text(
+            isForeground
+                ? AppLocalizations.of(context)!.customQrColorPickerFg
+                : AppLocalizations.of(context)!.customQrColorPickerBg,
+          ),
           content: SingleChildScrollView(
             child: BlockPicker(
               pickerColor: isForeground ? foregroundColor : backgroundColor,
@@ -568,7 +612,7 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
+              child: Text(AppLocalizations.of(context)!.commonOk),
             ),
           ],
         );
@@ -577,25 +621,71 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
   }
 
   String _getErrorCorrectionName(int level) {
+    final loc = AppLocalizations.of(context)!;
     switch (level) {
       case QrErrorCorrectLevel.L:
-        return 'Düşük (L)';
+        return loc.customQrErrorLowName;
       case QrErrorCorrectLevel.M:
-        return 'Orta (M)';
+        return loc.customQrErrorMidName;
       case QrErrorCorrectLevel.Q:
-        return 'Yüksek (Q)';
+        return loc.customQrErrorHighName;
       case QrErrorCorrectLevel.H:
-        return 'En Yüksek (H)';
+        return loc.customQrErrorMaxName;
       default:
-        return 'Orta (M)';
+        return loc.customQrErrorMidName;
     }
   }
 
-  void _shareCustomQR() {
-    // QR kod paylaşma işlemi
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Özelleştirilmiş QR kod paylaşılıyor...')),
-    );
+  Future<void> _shareCustomQR() async {
+    final loc = AppLocalizations.of(context)!;
+    try {
+      // QR kodunu bir resim olarak oluştur
+      final qrValidationResult = QrValidator.validate(
+        data: widget.data,
+        version: QrVersions.auto,
+        errorCorrectionLevel: errorCorrectLevel,
+      );
+      if (qrValidationResult.status != QrValidationStatus.valid) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(loc.customQrErrorCreate)));
+        return;
+      }
+
+      final painter = QrPainter(
+        data: widget.data,
+        version: QrVersions.auto,
+        errorCorrectionLevel: errorCorrectLevel,
+        color: foregroundColor,
+        emptyColor: backgroundColor,
+        gapless: true,
+      );
+
+      final picData = await painter.toImageData(
+        800,
+        format: ui.ImageByteFormat.png,
+      );
+      if (picData == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(loc.customQrErrorImage)));
+        return;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/custom_qr.png').create();
+      await file.writeAsBytes(picData.buffer.asUint8List());
+
+      await Share.shareXFiles([
+        XFile(file.path, mimeType: 'image/png'),
+      ], text: loc.customQrShareText);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.customQrShareError(e.toString()))),
+      );
+    }
   }
 
   void _saveCustomQR() async {
@@ -609,8 +699,8 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 Özelleştirilmiş QR kod geçmişe kaydedildi!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.customQrSaved),
             backgroundColor: Colors.green,
           ),
         );
@@ -619,7 +709,9 @@ class _CustomQRGeneratorScreenState extends State<CustomQRGeneratorScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Kaydetme hatası: $e'),
+            content: Text(
+              AppLocalizations.of(context)!.customQrSaveError(e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );

@@ -158,9 +158,14 @@ class ThemeProvider extends ChangeNotifier {
         foregroundColor: lightColorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 1,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
+          color: lightColorScheme.onSurface,
+        ),
+        toolbarTextStyle: TextStyle(
+          fontSize: 16,
+          color: lightColorScheme.onSurface,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -208,9 +213,14 @@ class ThemeProvider extends ChangeNotifier {
         foregroundColor: darkColorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 1,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
+          color: darkColorScheme.onSurface,
+        ),
+        toolbarTextStyle: TextStyle(
+          fontSize: 16,
+          color: darkColorScheme.onSurface,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

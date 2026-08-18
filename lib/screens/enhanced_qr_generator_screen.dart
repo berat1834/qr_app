@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../services/favorites_service.dart';
@@ -10,6 +10,7 @@ import '../services/feedback_service.dart';
 import '../services/share_service.dart';
 import '../services/history_service.dart';
 import '../utils/qr_helpers.dart';
+import '../l10n/app_localizations.dart';
 
 class EnhancedQRGeneratorScreen extends StatefulWidget {
   const EnhancedQRGeneratorScreen({super.key});
@@ -94,35 +95,115 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
     _textController.addListener(_generateQR);
   }
 
+  // --- YARDIMCI FONKSİYONLAR BURADA ---
+  // ... (tüm _buildX, _generateX, _clearAllControllers, _showHelpDialog, vs. fonksiyonları buraya taşınacak) ...
+
   @override
   Widget build(BuildContext context) {
+    final Color shadowColor = Colors.black.withValues(alpha: 0.06);
+    final colorScheme = Theme.of(context).colorScheme;
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('QR Kod Üretici'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(loc.enhancedQrGenTitle),
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: _showHelpDialog,
-            tooltip: 'Yardım',
+            tooltip: loc.enhancedQrGenHelpTooltip,
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Üstte büyük kart başlık
+            Card(
+              elevation: 8,
+              shadowColor: shadowColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 18,
+                  horizontal: 16,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.all(14),
+                      child: Icon(
+                        Icons.qr_code_2,
+                        size: 36,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            loc.enhancedQrGenHeaderTitle,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            loc.enhancedQrGenHeaderSubtitle,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Tür seçici kartı
             _buildTypeSelector(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            // Giriş formu kartı
             _buildInputForm(),
-            const SizedBox(height: 20),
-            _buildAdvancedOptions(), // Yeni eklenen gelişmiş ayarlar
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            // Gelişmiş ayarlar kartı
+            _buildAdvancedOptions(),
+            const SizedBox(height: 16),
             if (qrData.isNotEmpty) ...[
+              // QR önizleme kartı
               _buildQRPreview(),
-              const SizedBox(height: 20),
-              _buildActionButtons(),
+              const SizedBox(height: 16),
+              // Aksiyon butonları kartı
+              Card(
+                elevation: 4,
+                shadowColor: shadowColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 16,
+                  ),
+                  child: _buildActionButtons(),
+                ),
+              ),
             ],
           ],
         ),
@@ -131,15 +212,26 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildTypeSelector() {
-    return Card(
-      elevation: 4,
+    final loc = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'QR Kod Türü Seçin:',
+              loc.enhancedQrGenTypeSelect,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -153,7 +245,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   child: FilterChip(
-                    label: Text(type),
+                    label: Text(_typeDisplayLabel(type, loc)),
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
@@ -183,10 +275,20 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildInputForm() {
-    return Card(
-      elevation: 4,
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: _buildFormForSelectedType(),
@@ -219,18 +321,22 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildTextForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('text'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Metin Girişi:', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          loc.enhancedQrGenTextInput,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: _textController,
-          decoration: const InputDecoration(
-            hintText: 'QR kod olacak metni yazın...',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.text_fields),
+          decoration: InputDecoration(
+            hintText: loc.enhancedQrGenTextHint,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.text_fields),
           ),
           maxLines: 3,
           onChanged: (value) => _generateQR(),
@@ -240,18 +346,22 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildUrlForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('url'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('URL Girişi:', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          loc.enhancedQrGenUrlInput,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: _urlController,
-          decoration: const InputDecoration(
-            hintText: 'https://www.example.com',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.link),
+          decoration: InputDecoration(
+            hintText: loc.enhancedQrGenUrlHint,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.link),
           ),
           keyboardType: TextInputType.url,
           onChanged: (value) => _generateQR(),
@@ -265,7 +375,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                 _generateQR();
               },
               icon: const Icon(Icons.https),
-              label: const Text('HTTPS'),
+              label: Text(loc.enhancedQrGenHttps),
             ),
             TextButton.icon(
               onPressed: () {
@@ -273,7 +383,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                 _generateQR();
               },
               icon: const Icon(Icons.http),
-              label: const Text('HTTP'),
+              label: Text(loc.enhancedQrGenHttp),
             ),
           ],
         ),
@@ -282,20 +392,24 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildWiFiForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('wifi'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('WiFi Bilgileri:', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          loc.enhancedQrGenWifiInfo,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 12),
         TextFormField(
           key: const ValueKey('wifi_ssid_field'),
           controller: _wifiSsidController,
-          decoration: const InputDecoration(
-            labelText: 'Ağ Adı (SSID)',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.wifi),
-            hintText: 'WiFi ağ adını girin',
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenWifiSsid,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.wifi),
+            hintText: loc.enhancedQrGenWifiSsidHint,
           ),
           textInputAction: TextInputAction.next,
           onChanged: (value) => _generateQR(),
@@ -304,11 +418,11 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
         TextFormField(
           key: const ValueKey('wifi_password_field'),
           controller: _wifiPasswordController,
-          decoration: const InputDecoration(
-            labelText: 'Şifre',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.lock),
-            hintText: 'WiFi şifresini girin',
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenWifiPassword,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.lock),
+            hintText: loc.enhancedQrGenWifiPasswordHint,
           ),
           obscureText: true,
           textInputAction: TextInputAction.done,
@@ -318,15 +432,17 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
         DropdownButtonFormField<String>(
           key: const ValueKey('wifi_security_dropdown'),
           initialValue: _wifiSecurity,
-          decoration: const InputDecoration(
-            labelText: 'Güvenlik Türü',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.security),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenWifiSecurity,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.security),
           ),
           items: ['WPA', 'WEP', 'nopass'].map((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value == 'nopass' ? 'Açık Ağ' : value),
+              child: Text(
+                value == 'nopass' ? loc.enhancedQrGenWifiOpenNetwork : value,
+              ),
             );
           }).toList(),
           onChanged: (String? newValue) {
@@ -341,12 +457,13 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildPhoneForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('phone'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Telefon Numarası:',
+          loc.enhancedQrGenPhoneNumber,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
@@ -365,18 +482,22 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildEmailForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('email'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('E-mail Adresi:', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          loc.enhancedQrGenEmailAddress,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: _emailController,
-          decoration: const InputDecoration(
-            hintText: 'ornek@email.com',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.email),
+          decoration: InputDecoration(
+            hintText: loc.enhancedQrGenEmailHint,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.email),
           ),
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) => _generateQR(),
@@ -386,19 +507,23 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildSmsForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('sms'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('SMS Bilgileri:', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          loc.enhancedQrGenSmsInfo,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _smsController,
-          decoration: const InputDecoration(
-            labelText: 'Telefon Numarası',
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenPhoneNumberLabel,
             hintText: '+90 555 123 45 67',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.phone),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.phone),
           ),
           keyboardType: TextInputType.phone,
           onChanged: (value) => _generateQR(),
@@ -406,11 +531,11 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
         const SizedBox(height: 12),
         TextField(
           controller: _smsMessageController,
-          decoration: const InputDecoration(
-            labelText: 'Mesaj',
-            hintText: 'SMS mesajınızı yazın...',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.message),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenSmsMessage,
+            hintText: loc.enhancedQrGenSmsHint,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.message),
           ),
           maxLines: 3,
           onChanged: (value) => _generateQR(),
@@ -420,19 +545,23 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildLocationForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('location'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Konum Bilgileri:', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          loc.enhancedQrGenLocationInfo,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _latitudeController,
-          decoration: const InputDecoration(
-            labelText: 'Enlem (Latitude)',
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenLatitude,
             hintText: '41.0082',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.location_on),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.location_on),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) => _generateQR(),
@@ -440,11 +569,11 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
         const SizedBox(height: 12),
         TextField(
           controller: _longitudeController,
-          decoration: const InputDecoration(
-            labelText: 'Boylam (Longitude)',
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenLongitude,
             hintText: '28.9784',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.location_on),
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.location_on),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: (value) => _generateQR(),
@@ -454,31 +583,32 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildVCardForm() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('vcard'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Kartvizit Bilgileri:',
+          loc.enhancedQrGenVcardInfo,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _vCardNameController,
-          decoration: const InputDecoration(
-            labelText: 'Ad Soyad',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.person),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenFullName,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.person),
           ),
           onChanged: (value) => _generateQR(),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _vCardPhoneController,
-          decoration: const InputDecoration(
-            labelText: 'Telefon',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.phone),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenPhone,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.phone),
           ),
           keyboardType: TextInputType.phone,
           onChanged: (value) => _generateQR(),
@@ -486,10 +616,10 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
         const SizedBox(height: 12),
         TextField(
           controller: _vCardEmailController,
-          decoration: const InputDecoration(
-            labelText: 'E-mail',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.email),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenEmail,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.email),
           ),
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) => _generateQR(),
@@ -497,20 +627,20 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
         const SizedBox(height: 12),
         TextField(
           controller: _vCardOrgController,
-          decoration: const InputDecoration(
-            labelText: 'Şirket/Organizasyon',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.business),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenCompany,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.business),
           ),
           onChanged: (value) => _generateQR(),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _vCardUrlController,
-          decoration: const InputDecoration(
-            labelText: 'Web Sitesi',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.web),
+          decoration: InputDecoration(
+            labelText: loc.enhancedQrGenWebsite,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.web),
           ),
           keyboardType: TextInputType.url,
           onChanged: (value) => _generateQR(),
@@ -520,106 +650,158 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildAdvancedOptions() {
-    return Card(
-      elevation: 4,
-      child: ExpansionTile(
-        title: Text(
-          'Gelişmiş Ayarlar (Logo & Hassasiyet)',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: const Icon(Icons.settings_suggest),
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Hata Düzeltme Seviyesi Seçimi
-                DropdownButtonFormField<int>(
-                  value: _errorCorrectionLevel,
-                  decoration: const InputDecoration(
-                    labelText: 'Hata Düzeltme Seviyesi',
-                    border: OutlineInputBorder(),
-                    helperText:
-                        'Yüksek seviye (H), logo eklerken veya hasarlı kodlar için önerilir.',
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: QrErrorCorrectLevel.L, child: Text('Düşük (%7)')),
-                    DropdownMenuItem(value: QrErrorCorrectLevel.M, child: Text('Orta (%15)')),
-                    DropdownMenuItem(value: QrErrorCorrectLevel.Q, child: Text('Kaliteli (%25)')),
-                    DropdownMenuItem(value: QrErrorCorrectLevel.H, child: Text('Yüksek (%30)')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _errorCorrectionLevel = value!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Logo Seçimi
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _pickEmbeddedImage,
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: Text(_embeddedImage == null ? 'Logo Ekle' : 'Logoyu Değiştir'),
-                      ),
-                    ),
-                    if (_embeddedImage != null) ...[
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _embeddedImage = null;
-                          });
-                        },
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Logoyu Kaldır',
-                      ),
-                      const SizedBox(width: 8),
-                      Image.file(_embeddedImage!, width: 40, height: 40, fit: BoxFit.cover),
-                    ],
-                  ],
-                ),
-              ],
-            ),
+    final loc = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: ExpansionTile(
+          title: Text(
+            loc.enhancedQrGenAdvancedSettings,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          leading: const Icon(Icons.settings_suggest),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Hata Düzeltme Seviyesi Seçimi
+                  DropdownButtonFormField<int>(
+                    initialValue: _errorCorrectionLevel,
+                    decoration: InputDecoration(
+                      labelText: loc.enhancedQrGenErrorCorrection,
+                      border: const OutlineInputBorder(),
+                      helperText: loc.enhancedQrGenErrorCorrectionHint,
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: QrErrorCorrectLevel.L,
+                        child: Text(loc.enhancedQrGenErrorLow),
+                      ),
+                      DropdownMenuItem(
+                        value: QrErrorCorrectLevel.M,
+                        child: Text(loc.enhancedQrGenErrorMedium),
+                      ),
+                      DropdownMenuItem(
+                        value: QrErrorCorrectLevel.Q,
+                        child: Text(loc.enhancedQrGenErrorQuality),
+                      ),
+                      DropdownMenuItem(
+                        value: QrErrorCorrectLevel.H,
+                        child: Text(loc.enhancedQrGenErrorHigh),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _errorCorrectionLevel = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Logo Seçimi
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _pickEmbeddedImage,
+                          icon: const Icon(Icons.add_photo_alternate),
+                          label: Text(
+                            _embeddedImage == null
+                                ? loc.enhancedQrGenAddLogo
+                                : loc.enhancedQrGenChangeLogo,
+                          ),
+                        ),
+                      ),
+                      if (_embeddedImage != null) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _embeddedImage = null;
+                            });
+                          },
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          tooltip: loc.enhancedQrGenRemoveLogo,
+                        ),
+                        const SizedBox(width: 8),
+                        Image.file(
+                          _embeddedImage!,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildQRPreview() {
+    final loc = AppLocalizations.of(context)!;
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ScaleTransition(
         scale: _scaleAnimation,
-        child: Card(
-          elevation: 6,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.15),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.08),
+                blurRadius: 25,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
               children: [
                 Text(
-                  'QR Kod Önizleme',
+                  loc.enhancedQrGenPreview,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.3),
+                        color: Colors.black.withValues(alpha: 0.05),
                         spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -627,7 +809,9 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                     data: qrData,
                     version: QrVersions.auto,
                     errorCorrectionLevel: _errorCorrectionLevel,
-                    embeddedImage: _embeddedImage != null ? FileImage(_embeddedImage!) : null,
+                    embeddedImage: _embeddedImage != null
+                        ? FileImage(_embeddedImage!)
+                        : null,
                     embeddedImageStyle: const QrEmbeddedImageStyle(
                       size: Size(40, 40), // Logo boyutu
                     ),
@@ -656,6 +840,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   Widget _buildActionButtons() {
+    final loc = AppLocalizations.of(context)!;
     return FutureBuilder<bool>(
       future: qrData.isNotEmpty
           ? FavoritesService.isFavorite(qrData)
@@ -672,59 +857,82 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
               ElevatedButton.icon(
                 onPressed: _copyToClipboard,
                 icon: const Icon(Icons.copy),
-                label: const Text('Kopyala'),
+                label: Text(loc.enhancedQrGenCopy),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
               ElevatedButton.icon(
                 onPressed: _shareQR,
                 icon: const Icon(Icons.share),
-                label: const Text('Paylaş'),
+                label: Text(loc.enhancedQrGenShare),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
               ElevatedButton.icon(
                 onPressed: _saveToHistory,
                 icon: const Icon(Icons.save),
-                label: const Text('Kaydet'),
+                label: Text(loc.enhancedQrGenSave),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
               ElevatedButton.icon(
                 onPressed: (qrData.isEmpty || isFavorite)
                     ? null
                     : () async {
-                        String? note = await showDialog<String>(
+                        final String? note = await showDialog<String>(
                           context: context,
                           builder: (context) {
                             final controller = TextEditingController();
                             return AlertDialog(
-                              title: const Text('Favori Notu/Etiği'),
+                              title: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.enhancedQrGenFavoriteNoteTitle,
+                              ),
                               content: TextField(
                                 controller: controller,
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Kısa not veya etiket (isteğe bağlı)',
+                                decoration: InputDecoration(
+                                  hintText: AppLocalizations.of(
+                                    context,
+                                  )!.enhancedQrGenFavoriteNoteHint,
                                 ),
                                 maxLength: 40,
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: const Text('İptal'),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.commonCancel,
+                                  ),
                                 ),
                                 ElevatedButton(
                                   onPressed: () => Navigator.pop(
                                     context,
                                     controller.text.trim(),
                                   ),
-                                  child: const Text('Ekle'),
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.enhancedQrGenAdd,
+                                  ),
                                 ),
                               ],
                             );
@@ -739,20 +947,22 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                                 ? note
                                 : null,
                           );
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('⭐ Favorilere eklendi!'),
+                              SnackBar(
+                                content: Text(
+                                  loc.enhancedQrGenAddedToFavorites,
+                                ),
                               ),
                             );
                             setState(() {}); // Favori durumu güncellensin
                           }
                         } catch (e) {
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Zaten favorilerde veya hata: ${e.toString()}',
+                                  loc.enhancedQrGenFavoriteError(e.toString()),
                                 ),
                               ),
                             );
@@ -760,10 +970,18 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
                         }
                       },
                 icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
-                label: Text(isFavorite ? 'Favoride' : 'Favorilere Ekle'),
+                label: Text(
+                  isFavorite
+                      ? loc.enhancedQrGenFavorited
+                      : loc.enhancedQrGenAddToFavorites,
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ],
@@ -891,11 +1109,12 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   void _copyToClipboard() {
+    final loc = AppLocalizations.of(context)!;
     Clipboard.setData(ClipboardData(text: qrData));
     FeedbackService.buttonTapFeedback();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('QR kod verisi panoya kopyalandı')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(loc.enhancedQrGenCopiedToClipboard)));
   }
 
   void _shareQR() {
@@ -904,6 +1123,7 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
   }
 
   void _saveToHistory() async {
+    final loc = AppLocalizations.of(context)!;
     if (qrData.isNotEmpty) {
       final qrType = QRCodeUtils.determineQRType(qrData);
       await HistoryService.addToHistory(
@@ -914,47 +1134,95 @@ class _EnhancedQRGeneratorScreenState extends State<EnhancedQRGeneratorScreen>
       FeedbackService.qrGeneratedFeedback();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QR kod geçmişe kaydedildi')),
+          SnackBar(content: Text(loc.enhancedQrGenSavedToHistory)),
         );
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Önce bir QR kod oluşturun')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(loc.enhancedQrGenCreateFirst)));
     }
   }
 
   void _showHelpDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('QR Kod Türleri Hakkında'),
+          title: Text(loc.enhancedQrGenHelpTitle),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildHelpItem('📝 Metin', 'Basit metin içeriği'),
-                _buildHelpItem('🔗 URL', 'Web sitesi bağlantıları'),
-                _buildHelpItem('📶 WiFi', 'WiFi ağ bilgileri (SSID, şifre)'),
-                _buildHelpItem('📞 Telefon', 'Telefon numaraları'),
-                _buildHelpItem('📧 E-mail', 'E-mail adresleri'),
-                _buildHelpItem('💬 SMS', 'SMS gönderme bilgileri'),
-                _buildHelpItem('📍 Konum', 'GPS koordinatları'),
-                _buildHelpItem('👤 Kartvizit', 'Kişi iletişim bilgileri'),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpTextTitle,
+                  loc.enhancedQrGenHelpTextDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpUrlTitle,
+                  loc.enhancedQrGenHelpUrlDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpWifiTitle,
+                  loc.enhancedQrGenHelpWifiDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpPhoneTitle,
+                  loc.enhancedQrGenHelpPhoneDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpEmailTitle,
+                  loc.enhancedQrGenHelpEmailDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpSmsTitle,
+                  loc.enhancedQrGenHelpSmsDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpLocationTitle,
+                  loc.enhancedQrGenHelpLocationDesc,
+                ),
+                _buildHelpItem(
+                  loc.enhancedQrGenHelpVcardTitle,
+                  loc.enhancedQrGenHelpVcardDesc,
+                ),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tamam'),
+              child: Text(loc.commonOk),
             ),
           ],
         );
       },
     );
+  }
+
+  String _typeDisplayLabel(String type, AppLocalizations loc) {
+    switch (type) {
+      case 'Metin':
+        return loc.enhancedQrGenTypeText;
+      case 'URL':
+        return loc.enhancedQrGenTypeUrl;
+      case 'WiFi':
+        return loc.enhancedQrGenTypeWifi;
+      case 'Telefon':
+        return loc.enhancedQrGenTypePhone;
+      case 'E-mail':
+        return loc.enhancedQrGenTypeEmail;
+      case 'SMS':
+        return loc.enhancedQrGenTypeSms;
+      case 'Konum':
+        return loc.enhancedQrGenTypeLocation;
+      case 'Kartvizit':
+        return loc.enhancedQrGenTypeVcard;
+      default:
+        return type;
+    }
   }
 
   Widget _buildHelpItem(String title, String description) {

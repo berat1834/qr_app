@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -152,10 +151,10 @@ class OCRService {
   static List<OCRTextInfo> _extractTextInfo(String text) {
     final List<OCRTextInfo> textInfos = [];
 
-    for (var entry in _patterns.entries) {
+    for (final entry in _patterns.entries) {
       final matches = entry.value.allMatches(text);
 
-      for (var match in matches) {
+      for (final match in matches) {
         final matchedText = match.group(0) ?? '';
         final cleanedText = _cleanText(matchedText, entry.key);
         final metadata = _generateMetadata(cleanedText, entry.key);

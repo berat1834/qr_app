@@ -201,6 +201,45 @@ Not required, but could be valuable:
 
 ---
 
+## 📌 Fiyat Karşılaştırma ve Affiliate Özellikleri - Geliştirilebilecekler
+
+Aşağıdaki maddeler, uygulamanın fiyat karşılaştırma ve affiliate gelir modelini güçlendirmek için eklenebilecek, uygulanabilir özelliklerdir:
+
+1. **Fiyat Geçmişi Grafiği**
+   - Kullanıcıya ürünün son 30 gündeki fiyat değişimini grafikle göster.
+   - Fiyatın düşüp düşmediği kolayca anlaşılır.
+
+2. **Fiyat Alarmı**
+   - Kullanıcı belirli bir fiyat seviyesi girip, ürün o fiyata düştüğünde bildirim alabilir.
+
+3. **Favorilere Ekleme**
+   - Fiyatını takip etmek istediği ürünleri favorilere ekleyip, toplu olarak izleyebilir.
+
+4. **Daha Fazla Mağaza ve Gerçek API**
+   - Mock veriler yerine gerçek fiyat karşılaştırma API’leri (Akakçe, Cimri, Google Shopping vb.) ile entegrasyon.
+   - Daha fazla mağaza ve güncel fiyat sunulabilir.
+
+5. **Kullanıcı Yorumları ve Puanlar**
+   - Fiyat karşılaştırma modalında mağaza puanı, kullanıcı yorumu ve güvenilirlik göstergesi eklenebilir.
+
+6. **Affiliate Link Takibi**
+   - Hangi mağazaya kaç tıklama oldu, hangi ürünler daha çok ilgi gördü gibi istatistikler tutulabilir.
+
+7. **Premium Özellikler**
+   - Fiyat alarmı, reklamsız fiyat karşılaştırma gibi bazı gelişmiş özellikler sadece premium kullanıcılara açılabilir.
+
+8. **Kampanya/İndirim Etiketleri**
+   - Ürünlerde aktif kampanya veya indirim varsa özel etiketle vurgulanabilir.
+
+9. **Barkod Dışında Ürün Arama**
+   - Kullanıcı manuel olarak ürün adıyla da fiyat karşılaştırması yapabilmeli.
+
+---
+
+> Bu maddeler, uygulamanın gelir potansiyelini ve kullanıcı deneyimini artırmak için yol haritası olarak kullanılabilir.
+
+---
+
 **Status: All 4 sequential improvement steps completed successfully! 🎉**
 
 *The project is now in excellent condition with professional standards established.*
