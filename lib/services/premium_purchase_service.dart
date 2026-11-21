@@ -7,11 +7,10 @@ import 'analytics_service.dart';
 import 'receipt_verification_service.dart';
 
 class PremiumPurchaseService {
-  static const Set<String> _productIds = {
-    'premium_upgrade',
-    'premium_monthly',
-    'premium_yearly',
-  };
+  /// Sadece tek seferlik premium ürünü satılır.
+  /// Abonelikler sunucu tarafında doğrulanamadığı için kaldırıldı.
+  static const String premiumProductId = 'premium_upgrade';
+  static const Set<String> _productIds = {premiumProductId};
 
   static InAppPurchase? _iap;
 
@@ -34,7 +33,6 @@ class PremiumPurchaseService {
 
     if (_initialized) return;
 
-    // Web platformunda in-app purchase çalışmaz
     if (kIsWeb) {
       _isStoreAvailable = false;
       _initialized = true;
@@ -77,54 +75,30 @@ class PremiumPurchaseService {
   }
 
   static Future<bool> buyPremium() async {
-    if (!_initialized) return false;
-    if (!_isStoreAvailable) return false;
-    if (_iap == null) return false;
+    if (!_initialized || !_isStoreAvailable || _iap == null) return false;
 
     if (_products.isEmpty) {
       await _queryProducts();
     }
 
-    if (_products.isEmpty) return false;
+    final matches = _products.where((p) => p.id == premiumProductId);
+    if (matches.isEmpty) return false;
+    final product = matches.first;
 
-    final product = _pickPreferredProduct(_products);
-    if (product == null) return false;
-
-    final purchaseParam = PurchaseParam(productDetails: product);
-
-    // Log analytics: Satın alma başlangıcı
     await AnalyticsService.logPurchaseStart(
       productId: product.id,
-      productType: _getProductType(product.id),
+      productType: 'upgrade',
     );
 
-    // Subscription ürünleri için buyNonConsumable yerine buyConsumable kullanılmaz.
-    // Uygulamada tek premium erişim anahtarı için non-consumable akışını baz alıyoruz.
-    return _iap!.buyNonConsumable(purchaseParam: purchaseParam);
-  }
-
-  static ProductDetails? _pickPreferredProduct(List<ProductDetails> products) {
-    const preferredOrder = [
-      'premium_upgrade',
-      'premium_yearly',
-      'premium_monthly',
-    ];
-
-    for (final id in preferredOrder) {
-      final match = products.where((p) => p.id == id).toList();
-      if (match.isNotEmpty) return match.first;
-    }
-
-    return products.isNotEmpty ? products.first : null;
+    return _iap!.buyNonConsumable(
+      purchaseParam: PurchaseParam(productDetails: product),
+    );
   }
 
   static Future<void> restorePurchases() async {
-    if (!_initialized || !_isStoreAvailable) return;
-    if (_iap == null) return;
+    if (!_initialized || !_isStoreAvailable || _iap == null) return;
 
-    // Log analytics: Geri yükleme başlangıcı
     await AnalyticsService.logRestoreStart();
-
     await _iap!.restorePurchases();
   }
 
@@ -132,6 +106,12 @@ class PremiumPurchaseService {
     List<PurchaseDetails> purchaseDetailsList,
   ) async {
     for (final purchaseDetails in purchaseDetailsList) {
+      // Varsayılan: işlem tamamlanabilir (hata/iptal durumları için).
+      // Doğrulanmamış satın almalar ASLA onaylanmaz; böylece Google
+      // onaylanmayan satın almayı 3 gün içinde otomatik iade eder ve
+      // kullanıcı ücret ödeyip premium alamama durumuna düşmez.
+      var shouldComplete = true;
+
       switch (purchaseDetails.status) {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
@@ -139,20 +119,18 @@ class PremiumPurchaseService {
             purchaseDetails,
           );
           if (result.isValid) {
-            // Log analytics: Başarılı satın alma
             await AnalyticsService.logPurchaseSuccess(
               productId: purchaseDetails.productID,
-              productType: _getProductType(purchaseDetails.productID),
+              productType: 'upgrade',
             );
             _onEntitlementChanged?.call(true);
           } else {
-            // Log analytics: Başarısız satın alma
+            shouldComplete = false;
             await AnalyticsService.logPurchaseFailed(
               productId: purchaseDetails.productID,
               errorCode: result.errorCode ?? 'UNKNOWN',
               errorMessage: result.errorMessage ?? 'Bilinmeyen hata',
             );
-            // Hata callback'i çağır
             _onVerificationError?.call({
               'message': result.errorMessage ?? 'Bilinmeyen hata',
               'code': result.errorCode ?? 'UNKNOWN',
@@ -160,9 +138,9 @@ class PremiumPurchaseService {
           }
           break;
         case PurchaseStatus.pending:
+          shouldComplete = false;
           break;
         case PurchaseStatus.error:
-          // Log analytics: Hata durumu
           await AnalyticsService.logPurchaseFailed(
             productId: purchaseDetails.productID,
             errorCode: 'PURCHASE_ERROR',
@@ -170,14 +148,13 @@ class PremiumPurchaseService {
           );
           break;
         case PurchaseStatus.canceled:
-          // Log analytics: İptal edildi
           await AnalyticsService.logPurchaseCanceled(
             productId: purchaseDetails.productID,
           );
           break;
       }
 
-      if (purchaseDetails.pendingCompletePurchase) {
+      if (shouldComplete && purchaseDetails.pendingCompletePurchase) {
         await _iap?.completePurchase(purchaseDetails);
       }
     }
@@ -187,11 +164,5 @@ class PremiumPurchaseService {
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;
     _initialized = false;
-  }
-
-  static String _getProductType(String productId) {
-    if (productId.contains('monthly')) return 'monthly';
-    if (productId.contains('yearly')) return 'yearly';
-    return 'upgrade';
   }
 }
